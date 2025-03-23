@@ -28,10 +28,14 @@ export function useIsMobile() {
 // Helper hook to detect device orientation
 export function useOrientation() {
   const [orientation, setOrientation] = React.useState<'portrait' | 'landscape'>(
-    window.innerHeight > window.innerWidth ? 'portrait' : 'landscape'
+    typeof window !== 'undefined' ? 
+    (window.innerHeight > window.innerWidth ? 'portrait' : 'landscape') : 
+    'portrait'
   )
 
   React.useEffect(() => {
+    if (typeof window === 'undefined') return
+
     const handleResize = () => {
       setOrientation(
         window.innerHeight > window.innerWidth ? 'portrait' : 'landscape'
