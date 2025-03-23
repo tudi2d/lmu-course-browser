@@ -42,6 +42,68 @@ const TreeBrowser: React.FC = () => {
   
   const isMobile = useIsMobile();
   
+  // IMPORTANT: Define buildTree function BEFORE it's used in any useMemo hooks
+  const buildTree = useCallback((courseItems: CourseTreeItem[]) => {
+    const root: TreeNode = { name: 'root', children: {}, courses: [] };
+    
+    courseItems.forEach(item => {
+      let currentNode = root;
+      
+      // Add path nodes
+      item.path.forEach((pathPart, idx) => {
+        if (!currentNode.children[pathPart]) {
+          currentNode.children[pathPart] = { name: pathPart, children: {}, courses: [] };
+        }
+        currentNode = currentNode.children[pathPart];
+        
+        // Add course to leaf node
+        if (idx === item.path.length - 1) {
+          currentNode.courses.push(item);
+        }
+      });
+    });
+    
+    return root;
+  }, []);
+  
+  // Apply filtering and search to courses
+  const filteredCourses = useMemo(() => {
+    return filterCourses(allCourses, searchQuery, filters);
+  }, [allCourses, searchQuery, filters]);
+  
+  // Build tree data from filtered courses
+  const filteredTreeData = useMemo(() => {
+    return buildTree(filteredCourses);
+  }, [filteredCourses, buildTree]);
+  
+  // Get unique filter values and counts
+  const filterOptions = useMemo(() => {
+    const uniqueValues = extractUniqueFilterValues(allCourses);
+    const counts = countFilteredCourses(allCourses, filteredCourses);
+    
+    const createFilterCategory = (
+      id: string, 
+      name: string, 
+      values: string[], 
+      countMap: Record<string, number>
+    ): FilterCategory => ({
+      id,
+      name,
+      items: values.map(value => ({
+        id: value,
+        name: value,
+        count: countMap[value] || 0
+      }))
+    });
+    
+    return [
+      createFilterCategory('semesters', 'Semester', uniqueValues.semesters, counts.semesters),
+      createFilterCategory('types', 'Course Type', uniqueValues.types, counts.types),
+      createFilterCategory('languages', 'Language', uniqueValues.languages, counts.languages),
+      createFilterCategory('faculties', 'Faculty', uniqueValues.faculties, counts.faculties)
+    ];
+  }, [allCourses, filteredCourses]);
+  
   // Fetch course data from local JSON
   useEffect(() => {
     const loadCourseData = async () => {
@@ -81,7 +143,7 @@ const TreeBrowser: React.FC = () => {
     };
     
     loadCourseData();
-  }, []);
+  }, [buildTree]);
 
   // Load course details when a course is selected
   useEffect(() => {
@@ -108,68 +170,6 @@ const TreeBrowser: React.FC = () => {
 
     loadCourseDetails();
   }, [selectedCourse]);
-  
-  // Apply filtering and search to courses
-  const filteredCourses = useMemo(() => {
-    return filterCourses(allCourses, searchQuery, filters);
-  }, [allCourses, searchQuery, filters]);
-  
-  // Build tree data from filtered courses
-  const filteredTreeData = useMemo(() => {
-    return buildTree(filteredCourses);
-  }, [filteredCourses]);
-  
-  // Get unique filter values and counts
-  const filterOptions = useMemo(() => {
-    const uniqueValues = extractUniqueFilterValues(allCourses);
-    const counts = countFilteredCourses(allCourses, filteredCourses);
-    
-    const createFilterCategory = (
-      id: string, 
-      name: string, 
-      values: string[], 
-      countMap: Record<string, number>
-    ): FilterCategory => ({
-      id,
-      name,
-      items: values.map(value => ({
-        id: value,
-        name: value,
-        count: countMap[value] || 0
-      }))
-    });
-    
-    return [
-      createFilterCategory('semesters', 'Semester', uniqueValues.semesters, counts.semesters),
-      createFilterCategory('types', 'Course Type', uniqueValues.types, counts.types),
-      createFilterCategory('languages', 'Language', uniqueValues.languages, counts.languages),
-      createFilterCategory('faculties', 'Faculty', uniqueValues.faculties, counts.faculties)
-    ];
-  }, [allCourses, filteredCourses]);
-  
-  // Build tree data from flat data
-  const buildTree = useCallback((courseItems: CourseTreeItem[]) => {
-    const root: TreeNode = { name: 'root', children: {}, courses: [] };
-    
-    courseItems.forEach(item => {
-      let currentNode = root;
-      
-      // Add path nodes
-      item.path.forEach((pathPart, idx) => {
-        if (!currentNode.children[pathPart]) {
-          currentNode.children[pathPart] = { name: pathPart, children: {}, courses: [] };
-        }
-        currentNode = currentNode.children[pathPart];
-        
-        // Add course to leaf node
-        if (idx === item.path.length - 1) {
-          currentNode.courses.push(item);
-        }
-      });
-    });
-    
-    return root;
-  }, []);
   
   const handleNodeToggle = (nodePath: string) => {
     setExpandedNodes(prev => {
