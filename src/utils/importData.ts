@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Course, CourseTreeItem } from "@/services/courseService";
+import { Json } from "@/integrations/supabase/types";
 
 // Function to import tree data from a tree.json file
 export const importTreeData = async (treeData: CourseTreeItem[]): Promise<boolean> => {
@@ -80,7 +81,7 @@ export const importCourseDetails = async (courseDetails: Course[]): Promise<bool
       const { error: updateError } = await supabase
         .from('courses')
         .update({
-          schedule: detail.schedule || null,
+          schedule: detail.schedule as unknown as Json, // Convert Schedule[] to Json
           sws: detail.sws || null,
           max_participants: detail.max_participants || null,
           language: detail.language || null,

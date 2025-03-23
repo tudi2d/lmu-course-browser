@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
+import { Json } from "@/integrations/supabase/types";
 
 // Type definitions
 export interface Schedule {
@@ -79,7 +80,11 @@ export const fetchCourseTree = async (): Promise<CourseTreeItem[]> => {
       id: item.id,
       path: item.path,
       course_id: item.course_id,
-      course: item.courses as Course,
+      course: {
+        ...item.courses as any,
+        // Convert schedule from Json to Schedule[] if it exists
+        schedule: item.courses?.schedule ? (item.courses.schedule as any as Schedule[]) : undefined
+      },
     }));
   } catch (error) {
     console.error('Unexpected error fetching course tree:', error);
