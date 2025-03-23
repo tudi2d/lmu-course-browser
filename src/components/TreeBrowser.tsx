@@ -3,97 +3,86 @@ import React, { useState, useEffect } from 'react';
 import TreeNode from './TreeNode';
 import CourseDetail from './CourseDetail';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
-
-interface Course {
-  number: string;
-  name: string;
-  type: string;
-  url?: string;
-  detail_url?: string;
-  professor?: string | null;
-  semester?: string;
-  sws?: number;
-  max_participants?: number;
-  language?: string;
-  schedule?: any[];
-  instructors?: string[];
-  description?: string;
-  literature?: string;
-  requirements?: string;
-  target_group?: string;
-  registration_info?: string;
-  evaluation_method?: string;
-  faculties?: string[];
-  departments?: string[];
-  degree_programs?: string[];
-  modules?: string[];
-  registration_periods?: string[];
-  has_content?: boolean;
-  processing_date?: string;
-  scrape_success?: boolean;
-  error_message?: string;
-}
-
-interface CourseItem {
-  path: string[];
-  course: Course;
-}
+import { fetchCourseTree, CourseTreeItem } from '@/services/courseService';
+import { toast } from '@/components/ui/use-toast';
 
 interface TreeNode {
   name: string;
   children: { [key: string]: TreeNode };
-  courses: CourseItem[];
+  courses: CourseTreeItem[];
 }
 
-interface TreeBrowserProps {
-  data: CourseItem[];
-}
-
-const TreeBrowser: React.FC<TreeBrowserProps> = ({ data }) => {
+const TreeBrowser: React.FC = () => {
   const [treeData, setTreeData] = useState<TreeNode>({ name: 'root', children: {}, courses: [] });
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [selectedCourse, setSelectedCourse] = useState<CourseItem | null>(null);
+  const [selectedCourse, setSelectedCourse] = useState<CourseTreeItem | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
   
-  // Build tree data from flat data
+  // Fetch course data from Supabase
   useEffect(() => {
-    const buildTree = (courseItems: CourseItem[]) => {
-      const root: TreeNode = { name: 'root', children: {}, courses: [] };
-      
-      courseItems.forEach(item => {
-        let currentNode = root;
-        
-        // Add path nodes
-        item.path.forEach((pathPart, idx) => {
-          if (!currentNode.children[pathPart]) {
-            currentNode.children[pathPart] = { name: pathPart, children: {}, courses: [] };
-          }
-          currentNode = currentNode.children[pathPart];
+    const loadCourseData = async () => {
+      setLoading(true);
+      try {
+        const courseTreeData = await fetchCourseTree();
+        if (courseTreeData.length > 0) {
+          const builtTree = buildTree(courseTreeData);
+          setTreeData(builtTree);
           
-          // Add course to leaf node
-          if (idx === item.path.length - 1) {
-            currentNode.courses.push(item);
-          }
+          // Auto-expand first level
+          const firstLevelNodes = new Set<string>();
+          courseTreeData.forEach(item => {
+            if (item.path[0]) {
+              firstLevelNodes.add(item.path[0]);
+            }
+          });
+          setExpandedNodes(firstLevelNodes);
+        } else {
+          toast({
+            title: "No courses found",
+            description: "The course database is empty.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error loading course data:', error);
+        toast({
+          title: "Error loading courses",
+          description: "Could not load course data from the database.",
+          variant: "destructive",
         });
-      });
-      
-      return root;
+      } finally {
+        setLoading(false);
+      }
     };
     
-    setTreeData(buildTree(data));
+    loadCourseData();
+  }, []);
+  
+  // Build tree data from flat data
+  const buildTree = (courseItems: CourseTreeItem[]) => {
+    const root: TreeNode = { name: 'root', children: {}, courses: [] };
     
-    // Auto-expand first level
-    if (data.length > 0) {
-      const firstLevelNodes = new Set<string>();
-      data.forEach(item => {
-        if (item.path[0]) {
-          firstLevelNodes.add(item.path[0]);
+    courseItems.forEach(item => {
+      let currentNode = root;
+      
+      // Add path nodes
+      item.path.forEach((pathPart, idx) => {
+        if (!currentNode.children[pathPart]) {
+          currentNode.children[pathPart] = { name: pathPart, children: {}, courses: [] };
+        }
+        currentNode = currentNode.children[pathPart];
+        
+        // Add course to leaf node
+        if (idx === item.path.length - 1) {
+          currentNode.courses.push(item);
         }
       });
-      setExpandedNodes(firstLevelNodes);
-    }
-  }, [data]);
+    });
+    
+    return root;
+  };
   
   const handleNodeToggle = (nodePath: string) => {
     setExpandedNodes(prev => {
@@ -185,7 +174,11 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({ data }) => {
           
           {/* Tree navigation */}
           <div className="overflow-y-auto h-full">
-            {renderTreeNodes(treeData)}
+            {loading ? (
+              <div className="p-4 text-sm text-muted-foreground">Loading courses...</div>
+            ) : (
+              renderTreeNodes(treeData)
+            )}
           </div>
         </div>
       </div>

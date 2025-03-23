@@ -9,6 +9,160 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      course_tree: {
+        Row: {
+          course_id: string | null
+          created_at: string | null
+          id: string
+          path: string[]
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          path: string[]
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          path?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_tree_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          created_at: string | null
+          degree_programs: string[] | null
+          departments: string[] | null
+          description: string | null
+          detail_url: string | null
+          error_message: string | null
+          evaluation_method: string | null
+          faculties: string[] | null
+          has_content: boolean | null
+          id: string
+          instructors: string[] | null
+          language: string | null
+          literature: string | null
+          max_participants: number | null
+          modules: string[] | null
+          name: string
+          number: string | null
+          processing_date: string | null
+          professor: string | null
+          registration_info: string | null
+          registration_periods: string[] | null
+          requirements: string | null
+          schedule: Json | null
+          scrape_success: boolean | null
+          semester: string | null
+          sws: number | null
+          target_group: string | null
+          type: string | null
+          url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          degree_programs?: string[] | null
+          departments?: string[] | null
+          description?: string | null
+          detail_url?: string | null
+          error_message?: string | null
+          evaluation_method?: string | null
+          faculties?: string[] | null
+          has_content?: boolean | null
+          id?: string
+          instructors?: string[] | null
+          language?: string | null
+          literature?: string | null
+          max_participants?: number | null
+          modules?: string[] | null
+          name: string
+          number?: string | null
+          processing_date?: string | null
+          professor?: string | null
+          registration_info?: string | null
+          registration_periods?: string[] | null
+          requirements?: string | null
+          schedule?: Json | null
+          scrape_success?: boolean | null
+          semester?: string | null
+          sws?: number | null
+          target_group?: string | null
+          type?: string | null
+          url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          degree_programs?: string[] | null
+          departments?: string[] | null
+          description?: string | null
+          detail_url?: string | null
+          error_message?: string | null
+          evaluation_method?: string | null
+          faculties?: string[] | null
+          has_content?: boolean | null
+          id?: string
+          instructors?: string[] | null
+          language?: string | null
+          literature?: string | null
+          max_participants?: number | null
+          modules?: string[] | null
+          name?: string
+          number?: string | null
+          processing_date?: string | null
+          professor?: string | null
+          registration_info?: string | null
+          registration_periods?: string[] | null
+          requirements?: string | null
+          schedule?: Json | null
+          scrape_success?: boolean | null
+          semester?: string | null
+          sws?: number | null
+          target_group?: string | null
+          type?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          course_id: string | null
+          created_at: string | null
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       podcasts: {
         Row: {
           audio_url: string | null
