@@ -6,6 +6,7 @@ import { User } from "lucide-react";
 import CourseSearch from "./CourseSearch";
 import CourseTreeRenderer from "./CourseTreeRenderer";
 import CalendarModal from "./CalendarModal";
+import FavoritesList from "./FavoritesList";
 import { CourseNode } from "@/services/courseService";
 
 interface CourseSidebarProps {
@@ -19,6 +20,7 @@ interface CourseSidebarProps {
   expandedNodes: Set<string>;
   openTabs: Array<{ course_id: string; name: string; details: any }>;
   favorites: string[];
+  courseNames: Record<string, string>;
   handleNodeToggle: (nodePath: string) => void;
   handleOpenCourse: (courseId: string, courseName: string) => void;
   user: any;
@@ -35,6 +37,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   expandedNodes,
   openTabs,
   favorites,
+  courseNames,
   handleNodeToggle,
   handleOpenCourse,
   user,
@@ -105,11 +108,13 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
               </div>
             )}
             
-            {activeTab === "favorites" && favorites.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground">
-                You don't have any favorite courses yet. Browse courses and
-                click the heart icon to add favorites.
-              </div>
+            {activeTab === "favorites" ? (
+              <FavoritesList
+                favorites={favorites}
+                courseNames={courseNames}
+                openTabs={openTabs}
+                handleOpenCourse={handleOpenCourse}
+              />
             ) : filteredTreeData && filteredTreeData.children && filteredTreeData.children.length > 0 ? (
               filteredTreeData.children.map((childNode) => (
                 <CourseTreeRenderer

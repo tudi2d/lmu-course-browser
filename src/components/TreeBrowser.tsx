@@ -10,10 +10,12 @@ import { useFilteredTree } from "@/hooks/use-filtered-tree";
 import CourseSidebar from "./CourseSidebar";
 import CourseTabsView from "./CourseTabsView";
 import { toast } from "@/components/ui/use-toast";
+import { CourseNode } from "@/services/courseService";
 
 const TreeBrowser: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isMobile = useIsMobile();
+  const [courseNames, setCourseNames] = useState<Record<string, string>>({});
   
   // Use custom hooks to manage different aspects of state
   const { treeData, loading: treeLoading } = useCourseTree();
@@ -25,6 +27,27 @@ const TreeBrowser: React.FC = () => {
     isFavorite, 
     user 
   } = useCourseFavorites();
+
+  // Extract course names from tree data when loaded
+  useEffect(() => {
+    if (treeData) {
+      const extractCourseNames = (node: CourseNode, namesMap: Record<string, string>) => {
+        if (node.value) {
+          namesMap[node.value] = node.name;
+        }
+        
+        if (node.children && node.children.length > 0) {
+          node.children.forEach(child => extractCourseNames(child, namesMap));
+        }
+        
+        return namesMap;
+      };
+      
+      const names = extractCourseNames(treeData, {});
+      setCourseNames(names);
+      console.log("Extracted course names:", names);
+    }
+  }, [treeData]);
   
   useEffect(() => {
     console.log("TreeBrowser - Current favorites:", favorites);
@@ -51,7 +74,7 @@ const TreeBrowser: React.FC = () => {
   // Handle toggling favorite status
   const handleToggleFavorite = useCallback(async (courseId: string, isFavorited: boolean) => {
     // First find the course name from open tabs or tree data
-    let courseName = "";
+    let courseName = courseNames[courseId] || "";
     const openTab = openTabs.find(tab => tab.course_id === courseId);
     if (openTab) {
       courseName = openTab.name;
@@ -62,7 +85,7 @@ const TreeBrowser: React.FC = () => {
     } else {
       await addFavorite(courseId, courseName);
     }
-  }, [openTabs, addFavorite, removeFavorite]);
+  }, [openTabs, addFavorite, removeFavorite, courseNames]);
   
   // Get filtered tree data
   const filteredTreeData = useFilteredTree(treeData, searchQuery, activeTab, favorites);
@@ -92,6 +115,7 @@ const TreeBrowser: React.FC = () => {
           expandedNodes={expandedNodes}
           openTabs={openTabs}
           favorites={favorites}
+          courseNames={courseNames}
           handleNodeToggle={handleNodeToggle}
           handleOpenCourse={handleOpenCourse}
           user={user}
