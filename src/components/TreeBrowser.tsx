@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import TreeNode from "./TreeNode";
 import CourseDetail from "./CourseDetail";
@@ -15,6 +14,7 @@ import {
   fetchCourseDetails,
   fetchFavorites,
   CourseNode,
+  Course,
 } from "@/services/courseService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -33,7 +33,7 @@ import CalendarModal from "./CalendarModal";
 interface CourseTab {
   course_id: string;
   name: string;
-  details: unknown | null;
+  details: Course | null;
 }
 
 const TreeBrowser: React.FC = () => {
@@ -104,10 +104,12 @@ const TreeBrowser: React.FC = () => {
     loadFavorites();
   }, [user]);
 
-  const loadCourseDetails = async (courseId: string) => {
+  const loadCourseDetails = async (courseId: string): Promise<Course | null> => {
     if (courseId) {
       try {
+        console.log("Loading course details for:", courseId);
         const details = await fetchCourseDetails(courseId);
+        console.log("Loaded course details:", details);
         return details;
       } catch (error) {
         console.error("Error loading course details:", error);
@@ -125,7 +127,18 @@ const TreeBrowser: React.FC = () => {
     if (existingTabIndex !== -1) {
       setActiveTabIndex(existingTabIndex);
     } else {
+      console.log("Opening course:", courseId, courseName);
       const details = await loadCourseDetails(courseId);
+      
+      if (!details) {
+        toast({
+          title: "Error loading course",
+          description: "Could not load details for this course.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setOpenTabs((prev) => [
         ...prev,
         { course_id: courseId, name: courseName, details },

@@ -60,19 +60,37 @@ export const fetchCourseTree = async (): Promise<CourseNode> => {
   return courseTreeData as unknown as CourseNode;
 };
 
-export const fetchCourseDetails = async (courseId: string): Promise<any> => {
-  // Simulate fetching course details
-  // In a real app, this would be an API call to get detailed information
-  return {
-    id: courseId,
-    title: `Course ${courseId}`,
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla vitae elit libero.",
-    schedule: "Mo 10:00-12:00, Thu 14:00-16:00",
-    instructor: "Prof. Dr. Example",
-    credits: 5,
-    prerequisites: "None",
-    location: "Main Campus, Room A101",
-  };
+export const fetchCourseDetails = async (courseId: string): Promise<Course | null> => {
+  // Fetch actual course data from Supabase database
+  const { data, error } = await supabase
+    .from('courses')
+    .select('*')
+    .eq('id', courseId)
+    .maybeSingle();
+    
+  if (error) {
+    console.error('Error fetching course details:', error);
+    return null;
+  }
+  
+  // Parse schedule data if it exists
+  if (data && data.schedule) {
+    try {
+      // Ensure schedule is treated as an array
+      const scheduleData = Array.isArray(data.schedule) 
+        ? data.schedule 
+        : (typeof data.schedule === 'string' 
+            ? JSON.parse(data.schedule) 
+            : [data.schedule]);
+            
+      data.schedule = scheduleData;
+    } catch (e) {
+      console.error('Error parsing schedule data:', e);
+      data.schedule = [];
+    }
+  }
+  
+  return data as Course;
 };
 
 export const fetchFavorites = async (): Promise<string[]> => {

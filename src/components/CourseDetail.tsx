@@ -17,26 +17,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { toast } from "@/components/ui/use-toast";
 import {
   Course,
   isFavorite,
   toggleFavorite,
-  fetchCourseDetails,
 } from "@/services/courseService";
 
-interface Schedule {
-  day: string;
-  time_start: string;
-  time_end: string;
-  rhythm: string;
-  first_date: string;
-  last_date: string;
-  room: string;
-  room_link: string;
-}
-
 interface CourseDetailProps {
-  course: unknown | null;
+  course: Course | null;
   path?: string[];
 }
 
@@ -50,29 +39,15 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
     setCourseData(null);
     setIsFavorited(false);
 
-    // Load course data
-    const loadCourse = async () => {
-      if (typeof course === "string") {
-        // If course is just an ID string, fetch the details
-        const details = await fetchCourseDetails(course);
-        setCourseData(details);
-
-        // Check favorite status
-        if (details?.id) {
-          checkFavoriteStatus(details.id);
-        }
-      } else if (course && typeof course === "object") {
-        // If course is already an object with data
-        setCourseData(course as Course);
-
-        // Check favorite status
-        if ((course as Course)?.id) {
-          checkFavoriteStatus((course as Course).id as string);
-        }
+    if (course) {
+      console.log("CourseDetail received course:", course);
+      setCourseData(course);
+      
+      // Check favorite status if we have a course ID
+      if (course.id) {
+        checkFavoriteStatus(course.id);
       }
-    };
-
-    loadCourse();
+    }
   }, [course]);
 
   const checkFavoriteStatus = async (courseId: string) => {
@@ -87,6 +62,19 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
     const success = await toggleFavorite(courseData.id, isFavorited);
     if (success) {
       setIsFavorited(!isFavorited);
+      toast({
+        title: isFavorited ? "Removed from favorites" : "Added to favorites",
+        description: isFavorited 
+          ? "Course has been removed from your favorites" 
+          : "Course has been added to your favorites",
+        variant: "default",
+      });
+    } else {
+      toast({
+        title: "Action failed",
+        description: "Could not update favorites. Please try again.",
+        variant: "destructive",
+      });
     }
     setLoading(false);
   };
@@ -141,19 +129,21 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
           </div>
 
           {/* Favorite button */}
-          <Button
-            variant="outline"
-            size="icon"
-            className={`${
-              isFavorited
-                ? "text-red-500 border-red-500 hover:bg-red-50"
-                : "text-muted-foreground"
-            }`}
-            onClick={handleToggleFavorite}
-            disabled={loading}
-          >
-            <Heart className={`${isFavorited ? "fill-red-500" : ""}`} />
-          </Button>
+          {courseData.id && (
+            <Button
+              variant="outline"
+              size="icon"
+              className={`${
+                isFavorited
+                  ? "text-red-500 border-red-500 hover:bg-red-50"
+                  : "text-muted-foreground"
+              }`}
+              onClick={handleToggleFavorite}
+              disabled={loading}
+            >
+              <Heart className={`${isFavorited ? "fill-red-500" : ""}`} />
+            </Button>
+          )}
         </div>
 
         {/* Tabs for different content sections */}
@@ -323,10 +313,12 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
                 </Table>
 
                 <div className="mt-4 text-sm text-muted-foreground">
-                  <p>
-                    First Date: {courseData.schedule[0].first_date || "N/A"}
-                  </p>
-                  <p>Last Date: {courseData.schedule[0].last_date || "N/A"}</p>
+                  {courseData.schedule[0].first_date && (
+                    <p>First Date: {courseData.schedule[0].first_date}</p>
+                  )}
+                  {courseData.schedule[0].last_date && (
+                    <p>Last Date: {courseData.schedule[0].last_date}</p>
+                  )}
                 </div>
               </div>
             ) : (
