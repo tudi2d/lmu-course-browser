@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCourseTree } from "@/hooks/use-course-tree";
@@ -25,6 +25,10 @@ const TreeBrowser: React.FC = () => {
     isFavorite, 
     user 
   } = useCourseFavorites();
+  
+  useEffect(() => {
+    console.log("TreeBrowser - Current favorites:", favorites);
+  }, [favorites]);
   
   const { 
     searchQuery, 

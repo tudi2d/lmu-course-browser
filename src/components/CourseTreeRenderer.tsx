@@ -26,7 +26,10 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
   handleNodeToggle,
   handleOpenCourse,
 }) => {
-  if (!node) return null;
+  if (!node) {
+    console.log("CourseTreeRenderer received null node");
+    return null;
+  }
 
   // Skip nodes that aren't courses and don't have children
   if (!node.value && (!node.children || node.children.length === 0)) {
@@ -39,10 +42,11 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
   const hasChildren = node.children && node.children.length > 0;
   const isCourse = node.value !== undefined;
 
-  const matchesSearch = searchQuery && 
-    (node.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (hasChildren && node.children?.some(child => 
-      child.name.toLowerCase().includes(searchQuery.toLowerCase()))));
+  // In the favorites tab, we automatically expand all nodes
+  const shouldAutoExpand = searchQuery || (hasChildren && node.children?.some(child => 
+    child.value && favorites.includes(child.value)));
+  
+  const isFavorite = isCourse && node.value && favorites.includes(node.value);
 
   return (
     <React.Fragment key={nodePath}>
@@ -50,7 +54,7 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
         name={node.name}
         level={level}
         hasChildren={hasChildren}
-        isExpanded={isExpanded || matchesSearch}
+        isExpanded={isExpanded || shouldAutoExpand}
         isActive={
           isCourse && openTabs.some((tab) => tab.course_id === node.value)
         }
@@ -58,11 +62,7 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
           searchQuery &&
           node.name.toLowerCase().includes(searchQuery.toLowerCase())
         }
-        isFavorite={
-          isCourse &&
-          node.value !== undefined &&
-          favorites.includes(node.value)
-        }
+        isFavorite={isFavorite}
         onToggle={() => handleNodeToggle(nodePath)}
         onClick={() => {
           if (isCourse && node.value) {
@@ -72,7 +72,7 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
           }
         }}
       >
-        {(isExpanded || matchesSearch) &&
+        {(isExpanded || shouldAutoExpand) &&
           hasChildren &&
           node.children?.map((childNode) => (
             <CourseTreeRenderer

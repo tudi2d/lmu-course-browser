@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
@@ -39,6 +39,19 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   handleOpenCourse,
   user,
 }) => {
+  // State to check if we have favorited courses in structure
+  const [hasFavoritesInTree, setHasFavoritesInTree] = useState(false);
+  
+  // Check if we have any favorites in the tree structure
+  useEffect(() => {
+    if (activeTab === "favorites" && filteredTreeData && filteredTreeData.children) {
+      // Check if any nodes are visible after filtering
+      const hasVisibleNodes = filteredTreeData.children.length > 0;
+      setHasFavoritesInTree(hasVisibleNodes);
+      console.log("Favorites tab has visible nodes:", hasVisibleNodes);
+    }
+  }, [activeTab, filteredTreeData, favorites]);
+
   return (
     <div className="flex flex-col h-full w-full">
       <CourseSearch
@@ -57,7 +70,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
             All Courses
           </TabsTrigger>
           <TabsTrigger className="flex-1" value="favorites">
-            Favorites
+            Favorites {favorites.length > 0 && `(${favorites.length})`}
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -102,7 +115,12 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                 You don't have any favorite courses yet. Browse courses and
                 click the heart icon to add favorites.
               </div>
-            ) : filteredTreeData ? (
+            ) : (activeTab === "favorites" && favorites.length > 0 && !hasFavoritesInTree) ? (
+              <div className="p-4 text-sm text-muted-foreground">
+                No courses found. Try clearing your search or check that your favorite courses
+                are still available in the course catalog.
+              </div>
+            ) : filteredTreeData && filteredTreeData.children?.length > 0 ? (
               filteredTreeData.children?.map((childNode) => (
                 <CourseTreeRenderer
                   key={childNode.name}
