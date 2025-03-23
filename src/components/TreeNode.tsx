@@ -35,7 +35,6 @@ const TreeNode: React.FC<TreeNodeProps> = ({
       <div
         className={cn(
           "tree-node-content flex items-center py-1.5 px-2 cursor-pointer text-sm transition-colors",
-          isActive && "active",
           isHighlighted && "bg-accent/20"
         )}
         style={{ paddingLeft: `${padding}px` }}
@@ -61,6 +60,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
         
         <span className={cn(
           "flex-1 truncate",
+          isActive && "font-bold",
           isHighlighted && "font-medium"
         )}>
           {name}

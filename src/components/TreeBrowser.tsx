@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import TreeNode from './TreeNode';
 import CourseDetail from './CourseDetail';
-import { ChevronLeft, ChevronRight, Search, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Calendar as CalendarIcon, X } from 'lucide-react';
 import { fetchCourseTree, fetchCourseDetails, fetchFavorites, CourseTreeItem } from '@/services/courseService';
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
@@ -18,17 +19,21 @@ interface TreeNode {
   courses: CourseTreeItem[];
 }
 
+interface CourseTab {
+  course: CourseTreeItem;
+  details: any | null;
+}
+
 const TreeBrowser: React.FC = () => {
   const [treeData, setTreeData] = useState<TreeNode>({ name: 'root', children: {}, courses: [] });
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-  const [selectedCourse, setSelectedCourse] = useState<CourseTreeItem | null>(null);
-  const [courseDetails, setCoursedDetails] = useState<any | null>(null);
+  const [openTabs, setOpenTabs] = useState<CourseTab[]>([]);
+  const [activeTabIndex, setActiveTabIndex] = useState<number>(-1);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all-courses');
   const [favorites, setFavorites] = useState<string[]>([]);
-  const [showCalendar, setShowCalendar] = useState(false);
   
   const isMobile = useIsMobile();
   
@@ -96,7 +101,6 @@ const TreeBrowser: React.FC = () => {
       try {
         const userFavorites = await fetchFavorites();
         setFavorites(userFavorites);
-        setShowCalendar(userFavorites.length > 0);
       } catch (error) {
         console.error('Error loading favorites:', error);
       }
@@ -105,27 +109,62 @@ const TreeBrowser: React.FC = () => {
     loadFavorites();
   }, []);
 
-  useEffect(() => {
-    const loadCourseDetails = async () => {
-      if (selectedCourse && selectedCourse.course_id) {
-        try {
-          const details = await fetchCourseDetails(selectedCourse.course_id);
-          if (details) {
-            setCoursedDetails(details);
-          } else {
-            setCoursedDetails(selectedCourse.course);
-          }
-        } catch (error) {
-          console.error('Error loading course details:', error);
-          setCoursedDetails(selectedCourse.course);
-        }
-      } else {
-        setCoursedDetails(null);
+  const loadCourseDetails = async (courseItem: CourseTreeItem) => {
+    if (courseItem.course_id) {
+      try {
+        const details = await fetchCourseDetails(courseItem.course_id);
+        return details || courseItem.course;
+      } catch (error) {
+        console.error('Error loading course details:', error);
+        return courseItem.course;
       }
-    };
+    }
+    return courseItem.course;
+  };
 
-    loadCourseDetails();
-  }, [selectedCourse]);
+  const handleOpenCourse = async (courseItem: CourseTreeItem) => {
+    // Check if course is already open in a tab
+    const existingTabIndex = openTabs.findIndex(tab => 
+      tab.course.course_id === courseItem.course_id
+    );
+
+    if (existingTabIndex !== -1) {
+      // If course is already open, just switch to that tab
+      setActiveTabIndex(existingTabIndex);
+    } else {
+      // Load course details
+      const details = await loadCourseDetails(courseItem);
+      
+      // Add new tab
+      setOpenTabs(prev => [...prev, { course: courseItem, details }]);
+      setActiveTabIndex(prev => prev + 1);
+    }
+  };
+
+  const handleCloseTab = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    setOpenTabs(prev => {
+      const newTabs = [...prev];
+      newTabs.splice(index, 1);
+      return newTabs;
+    });
+
+    // Adjust active tab index if needed
+    if (index === activeTabIndex) {
+      // If closing active tab, activate the previous tab or the next one if no previous
+      if (index > 0) {
+        setActiveTabIndex(index - 1);
+      } else if (openTabs.length > 1) {
+        setActiveTabIndex(0);
+      } else {
+        setActiveTabIndex(-1);
+      }
+    } else if (index < activeTabIndex) {
+      // If closing a tab before the active one, decrement active index
+      setActiveTabIndex(prev => prev - 1);
+    }
+  };
   
   const filteredTreeData = useMemo(() => {
     if (!searchQuery && activeTab === 'all-courses') {
@@ -213,7 +252,7 @@ const TreeBrowser: React.FC = () => {
                 level={level}
                 hasChildren={hasChildren || hasCourses}
                 isExpanded={isExpanded}
-                isActive={selectedCourse?.path.join('/') === currentPath.join('/')}
+                isActive={false}
                 isHighlighted={matchesSearch}
                 onToggle={() => handleNodeToggle(nodePath)}
                 onClick={() => handleNodeToggle(nodePath)}
@@ -227,17 +266,19 @@ const TreeBrowser: React.FC = () => {
                     (courseItem.course.professor && courseItem.course.professor.toLowerCase().includes(searchQuery.toLowerCase()))
                   );
                   
+                  const isActive = openTabs.some(tab => tab.course.course_id === courseItem.course_id);
+                  
                   return (
                     <div key={`course-${index}`} className={`animate-slide-in ${courseMatchesSearch ? 'bg-accent/20' : ''}`}>
                       <TreeNode
                         name={courseItem.course.name}
                         level={level + 1}
                         hasChildren={false}
-                        isActive={selectedCourse === courseItem}
+                        isActive={isActive}
                         isHighlighted={courseMatchesSearch}
                         isFavorite={isFavorite}
                         onToggle={() => {}}
-                        onClick={() => setSelectedCourse(courseItem)}
+                        onClick={() => handleOpenCourse(courseItem)}
                       />
                     </div>
                   );
@@ -255,7 +296,7 @@ const TreeBrowser: React.FC = () => {
       <div
         className={`border-r border-muted transition-all duration-300 ease-in-out ${
           sidebarCollapsed ? 'w-0' : isMobile ? 'w-full h-1/2' : 'w-full md:w-1/2 lg:w-1/3'
-        } ${isMobile && selectedCourse ? 'hidden' : 'flex'}`}
+        } ${isMobile && activeTabIndex !== -1 ? 'hidden' : 'flex'}`}
       >
         <div className="flex flex-col h-full w-full">
           <div className="p-4 border-b border-muted">
@@ -278,7 +319,7 @@ const TreeBrowser: React.FC = () => {
             </TabsList>
           </Tabs>
           
-          {!isMobile && activeTab === 'favorites' && (
+          {activeTab === 'favorites' && (
             <div className="p-2 border-b border-muted">
               <CalendarModal />
             </div>
@@ -313,14 +354,14 @@ const TreeBrowser: React.FC = () => {
       
       <div className={`bg-white transition-all duration-300 ${
         sidebarCollapsed ? 'w-full' : isMobile ? 'w-full h-1/2' : 'w-full md:w-1/2 lg:w-2/3'
-      } ${isMobile && !selectedCourse ? 'hidden' : 'flex flex-col'}`}>
-        {isMobile && selectedCourse && (
+      } ${isMobile && activeTabIndex === -1 ? 'hidden' : 'flex flex-col'}`}>
+        {isMobile && activeTabIndex !== -1 && (
           <div className="p-2 border-b">
             <Button 
               variant="ghost" 
               size="sm" 
               className="flex items-center" 
-              onClick={() => setSelectedCourse(null)}
+              onClick={() => setActiveTabIndex(-1)}
             >
               <ChevronLeft size={16} className="mr-1" />
               Back to courses
@@ -354,12 +395,41 @@ const TreeBrowser: React.FC = () => {
           </Accordion>
         )}
         
-        <div className="flex-1 overflow-y-auto">
-          <CourseDetail 
-            course={courseDetails ?? null} 
-            path={selectedCourse?.path}
-          />
-        </div>
+        {openTabs.length > 0 ? (
+          <div className="flex-1 flex flex-col">
+            <div className="flex overflow-x-auto border-b">
+              {openTabs.map((tab, index) => (
+                <button
+                  key={`tab-${index}`}
+                  className={`flex items-center px-4 py-2 text-sm whitespace-nowrap ${
+                    index === activeTabIndex ? 'bg-background border-b-2 border-primary' : 'hover:bg-muted/50'
+                  }`}
+                  onClick={() => setActiveTabIndex(index)}
+                >
+                  <span className="truncate max-w-[150px]">{tab.course.course.name}</span>
+                  <X
+                    size={14}
+                    className="ml-2 text-muted-foreground hover:text-foreground"
+                    onClick={(e) => handleCloseTab(index, e)}
+                  />
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex-1 overflow-y-auto">
+              {activeTabIndex >= 0 && openTabs[activeTabIndex] && (
+                <CourseDetail 
+                  course={openTabs[activeTabIndex].details} 
+                  path={openTabs[activeTabIndex].course.path}
+                />
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-muted-foreground text-sm">Select a course to view details</p>
+          </div>
+        )}
       </div>
     </div>
   );
