@@ -1,10 +1,12 @@
+
 import courseTreeData from '../data/course_tree.json';
 import { supabase } from '@/integrations/supabase/client';
 import { CourseNode, Course } from './types';
 import { parseScheduleData } from './scheduleService';
 import { isUUID } from '@/utils/validators';
 
-export { CourseNode, Course, CourseTreeItem, Schedule, isCourseNodeArray } from './types';
+export type { CourseNode, Course, CourseTreeItem, Schedule } from './types';
+export { isCourseNodeArray } from './types';
 export { fetchFavorites, isFavorite, addFavorite, removeFavorite, toggleFavorite } from './favoriteService';
 
 export const fetchCourseTree = async (): Promise<CourseNode> => {
