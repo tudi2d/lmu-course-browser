@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import React from 'react';
+import { ChevronRight, ChevronDown, Heart } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface TreeNodeProps {
   name: string;
@@ -8,8 +9,10 @@ interface TreeNodeProps {
   hasChildren: boolean;
   isExpanded?: boolean;
   isActive?: boolean;
-  onToggle: () => void;
+  isHighlighted?: boolean;
+  isFavorite?: boolean;
   onClick: () => void;
+  onToggle: () => void;
   children?: React.ReactNode;
 }
 
@@ -19,52 +22,57 @@ const TreeNode: React.FC<TreeNodeProps> = ({
   hasChildren,
   isExpanded = false,
   isActive = false,
-  onToggle,
+  isHighlighted = false,
+  isFavorite = false,
   onClick,
+  onToggle,
   children,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
-  // Define indent based on level
-  const indent = `${level * 16}px`;
-
-  // Define text size based on level (fakultät is larger)
-  const textSize = level === 0 ? 'text-sm font-medium' : 'text-sm';
+  const padding = level * 16 + 8; // 16px per level plus 8px base padding
   
   return (
     <div className="tree-node">
       <div
-        className={`tree-node-content flex items-center py-2 px-3 cursor-pointer ${isActive ? 'active' : ''}`}
-        style={{ paddingLeft: indent }}
+        className={cn(
+          "tree-node-content flex items-center py-1.5 px-2 cursor-pointer text-sm transition-colors",
+          isActive && "active",
+          isHighlighted && "bg-accent/20"
+        )}
+        style={{ paddingLeft: `${padding}px` }}
         onClick={onClick}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
         {hasChildren ? (
-          <div 
-            className="mr-1.5 text-gray-500 hover:text-tree-accent transition-colors"
+          <button
             onClick={(e) => {
               e.stopPropagation();
               onToggle();
             }}
+            className="mr-1 p-0.5 hover:bg-muted rounded-sm"
           >
             {isExpanded ? (
-              <ChevronDown size={16} className="transition-transform duration-200" />
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
             ) : (
-              <ChevronRight size={16} className="transition-transform duration-200" />
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
             )}
-          </div>
+          </button>
         ) : (
-          <div className="w-[16px] mr-1.5" />
+          <span className="w-5" /> // Spacer for alignment
         )}
-        <span className={`${textSize} truncate ${isActive ? 'text-tree-accent' : 'text-tree-gray'}`}>
+        
+        <span className={cn(
+          "flex-1 truncate",
+          isHighlighted && "font-medium"
+        )}>
           {name}
         </span>
+        
+        {isFavorite && (
+          <Heart size={12} className="text-red-500 fill-red-500 ml-1" />
+        )}
       </div>
+      
       {isExpanded && children && (
-        <div className="animate-slide-in overflow-hidden">
-          {children}
-        </div>
+        <div className="tree-node-children">{children}</div>
       )}
     </div>
   );

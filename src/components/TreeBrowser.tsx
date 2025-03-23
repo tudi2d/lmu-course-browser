@@ -1,11 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import TreeNode from './TreeNode';
 import CourseDetail from './CourseDetail';
 import { ChevronLeft, ChevronRight, Search, Calendar as CalendarIcon } from 'lucide-react';
-import { fetchCourseTree, fetchCourseDetails, CourseTreeItem } from '@/services/courseService';
+import { fetchCourseTree, fetchCourseDetails, fetchFavorites, CourseTreeItem } from '@/services/courseService';
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { Input } from '@/components/ui/input';
 
 interface TreeNode {
   name: string;
@@ -21,6 +26,35 @@ const TreeBrowser: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('all-courses');
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [showCalendar, setShowCalendar] = useState(false);
+  
+  const isMobile = useIsMobile();
+  
+  // Function to build tree data from flat data
+  const buildTree = useCallback((courseItems: CourseTreeItem[]) => {
+    const root: TreeNode = { name: 'root', children: {}, courses: [] };
+    
+    courseItems.forEach(item => {
+      let currentNode = root;
+      
+      // Add path nodes
+      item.path.forEach((pathPart, idx) => {
+        if (!currentNode.children[pathPart]) {
+          currentNode.children[pathPart] = { name: pathPart, children: {}, courses: [] };
+        }
+        currentNode = currentNode.children[pathPart];
+        
+        // Add course to leaf node
+        if (idx === item.path.length - 1) {
+          currentNode.courses.push(item);
+        }
+      });
+    });
+    
+    return root;
+  }, []);
   
   // Fetch course data from local JSON
   useEffect(() => {
@@ -60,6 +94,21 @@ const TreeBrowser: React.FC = () => {
     };
     
     loadCourseData();
+  }, [buildTree]);
+
+  // Load user favorites
+  useEffect(() => {
+    const loadFavorites = async () => {
+      try {
+        const userFavorites = await fetchFavorites();
+        setFavorites(userFavorites);
+        setShowCalendar(userFavorites.length > 0);
+      } catch (error) {
+        console.error('Error loading favorites:', error);
+      }
+    };
+    
+    loadFavorites();
   }, []);
 
   // Load course details when a course is selected
@@ -88,29 +137,62 @@ const TreeBrowser: React.FC = () => {
     loadCourseDetails();
   }, [selectedCourse]);
   
-  // Build tree data from flat data
-  const buildTree = (courseItems: CourseTreeItem[]) => {
-    const root: TreeNode = { name: 'root', children: {}, courses: [] };
+  // Filter tree items based on search query and active tab
+  const filteredTreeData = useMemo(() => {
+    if (!searchQuery && activeTab === 'all-courses') {
+      return treeData;
+    }
     
-    courseItems.forEach(item => {
-      let currentNode = root;
+    // Start with a copy of the original tree
+    const filteredRoot: TreeNode = { name: 'root', children: {}, courses: [] };
+    
+    // Helper function to check if a course matches the search query
+    const courseMatchesSearch = (course: CourseTreeItem) => {
+      if (!searchQuery) return true;
       
-      // Add path nodes
-      item.path.forEach((pathPart, idx) => {
-        if (!currentNode.children[pathPart]) {
-          currentNode.children[pathPart] = { name: pathPart, children: {}, courses: [] };
-        }
-        currentNode = currentNode.children[pathPart];
+      const lowerQuery = searchQuery.toLowerCase();
+      return (
+        course.course.name.toLowerCase().includes(lowerQuery) ||
+        (course.course.number && course.course.number.toLowerCase().includes(lowerQuery)) ||
+        (course.course.professor && course.course.professor.toLowerCase().includes(lowerQuery)) ||
+        (course.course.type && course.course.type.toLowerCase().includes(lowerQuery))
+      );
+    };
+    
+    // Helper function to recursively filter the tree
+    const filterNode = (node: TreeNode, parentPath: string[] = []): TreeNode | null => {
+      const filteredNode: TreeNode = { name: node.name, children: {}, courses: [] };
+      let hasMatchingContent = false;
+      
+      // Filter courses
+      node.courses.forEach(course => {
+        const isFavorite = course.course.id && favorites.includes(course.course.id);
+        const shouldInclude = courseMatchesSearch(course) && 
+                            (activeTab === 'all-courses' || (activeTab === 'favorites' && isFavorite));
         
-        // Add course to leaf node
-        if (idx === item.path.length - 1) {
-          currentNode.courses.push(item);
+        if (shouldInclude) {
+          filteredNode.courses.push(course);
+          hasMatchingContent = true;
         }
       });
-    });
+      
+      // Recursively filter children
+      Object.entries(node.children).forEach(([key, childNode]) => {
+        const childPath = [...parentPath, key];
+        const filteredChild = filterNode(childNode, childPath);
+        
+        if (filteredChild) {
+          filteredNode.children[key] = filteredChild;
+          hasMatchingContent = true;
+        }
+      });
+      
+      return hasMatchingContent ? filteredNode : null;
+    };
     
-    return root;
-  };
+    const filtered = filterNode(treeData);
+    return filtered || { name: 'root', children: {}, courses: [] };
+  }, [treeData, searchQuery, activeTab, favorites]);
   
   const handleNodeToggle = (nodePath: string) => {
     setExpandedNodes(prev => {
@@ -129,21 +211,17 @@ const TreeBrowser: React.FC = () => {
     
     const nodeEntries = Object.entries(node.children);
     
-    // Filter nodes if search query exists
-    const filteredEntries = searchQuery
-      ? nodeEntries.filter(([name]) => 
-          name.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-      : nodeEntries;
-    
     return (
       <>
-        {filteredEntries.map(([name, childNode]) => {
+        {nodeEntries.map(([name, childNode]) => {
           const currentPath = [...parentPath, name];
           const nodePath = currentPath.join('/');
           const isExpanded = expandedNodes.has(name) || expandedNodes.has(nodePath);
           const hasChildren = Object.keys(childNode.children).length > 0;
           const hasCourses = childNode.courses.length > 0;
+          
+          // We'll highlight nodes that match the search query
+          const matchesSearch = searchQuery && name.toLowerCase().includes(searchQuery.toLowerCase());
           
           return (
             <React.Fragment key={nodePath}>
@@ -153,22 +231,35 @@ const TreeBrowser: React.FC = () => {
                 hasChildren={hasChildren || hasCourses}
                 isExpanded={isExpanded}
                 isActive={selectedCourse?.path.join('/') === currentPath.join('/')}
+                isHighlighted={matchesSearch}
                 onToggle={() => handleNodeToggle(nodePath)}
                 onClick={() => handleNodeToggle(nodePath)}
               >
                 {isExpanded && hasChildren && renderTreeNodes(childNode, level + 1, currentPath)}
-                {isExpanded && hasCourses && childNode.courses.map((courseItem, index) => (
-                  <div key={`course-${index}`} className="animate-slide-in">
-                    <TreeNode
-                      name={courseItem.course.name}
-                      level={level + 1}
-                      hasChildren={false}
-                      isActive={selectedCourse === courseItem}
-                      onToggle={() => {}}
-                      onClick={() => setSelectedCourse(courseItem)}
-                    />
-                  </div>
-                ))}
+                {isExpanded && hasCourses && childNode.courses.map((courseItem, index) => {
+                  // Check if this course is a favorite for the favorites tab
+                  const isFavorite = courseItem.course.id && favorites.includes(courseItem.course.id);
+                  const courseMatchesSearch = searchQuery && (
+                    courseItem.course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    (courseItem.course.number && courseItem.course.number.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                    (courseItem.course.professor && courseItem.course.professor.toLowerCase().includes(searchQuery.toLowerCase()))
+                  );
+                  
+                  return (
+                    <div key={`course-${index}`} className={`animate-slide-in ${courseMatchesSearch ? 'bg-accent/20' : ''}`}>
+                      <TreeNode
+                        name={courseItem.course.name}
+                        level={level + 1}
+                        hasChildren={false}
+                        isActive={selectedCourse === courseItem}
+                        isHighlighted={courseMatchesSearch}
+                        isFavorite={isFavorite}
+                        onToggle={() => {}}
+                        onClick={() => setSelectedCourse(courseItem)}
+                      />
+                    </div>
+                  );
+                })}
               </TreeNode>
             </React.Fragment>
           );
@@ -178,69 +269,131 @@ const TreeBrowser: React.FC = () => {
   };
   
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
       {/* Sidebar / Tree View */}
       <div
         className={`border-r border-muted transition-all duration-300 ease-in-out ${
-          sidebarCollapsed ? 'w-0' : 'w-full sm:w-1/2 md:w-1/3 lg:w-3/10'
-        }`}
+          sidebarCollapsed ? 'w-0' : isMobile ? 'w-full h-1/2' : 'w-full md:w-1/2 lg:w-1/3'
+        } ${isMobile && selectedCourse ? 'hidden' : 'flex'}`}
       >
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full w-full">
+          {/* Tabs for All Courses and Favorites */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full">
+              <TabsTrigger className="flex-1" value="all-courses">All Courses</TabsTrigger>
+              <TabsTrigger className="flex-1" value="favorites">Favorites</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
           {/* Search bar */}
           <div className="p-4 border-b border-muted">
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-              <input
+              <Input
                 type="text"
                 placeholder="Search courses..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-muted/20 border-0 rounded-sm pl-9 pr-4 py-2 text-sm focus:ring-1 focus:ring-tree-accent transition-shadow"
+                className="w-full pl-9 pr-4 py-2"
               />
             </div>
           </div>
           
-          {/* Calendar view link */}
-          <div className="p-2 border-b border-muted">
-            <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-              <a href="/calendar">
-                <CalendarIcon className="h-4 w-4 mr-2" />
-                Calendar View
-              </a>
-            </Button>
-          </div>
+          {/* Calendar view link - now available in Content View for more space */}
+          {!isMobile && (
+            <div className="p-2 border-b border-muted">
+              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
+                <a href="/calendar">
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  Calendar View
+                </a>
+              </Button>
+            </div>
+          )}
           
           {/* Tree navigation */}
           <div className="overflow-y-auto h-full">
             {loading ? (
               <div className="p-4 text-sm text-muted-foreground">Loading courses...</div>
+            ) : activeTab === 'favorites' && favorites.length === 0 ? (
+              <div className="p-4 text-sm text-muted-foreground">
+                You don't have any favorite courses yet. Browse courses and click the heart icon to add favorites.
+              </div>
             ) : (
-              renderTreeNodes(treeData)
+              renderTreeNodes(filteredTreeData)
             )}
           </div>
         </div>
       </div>
       
-      {/* Sidebar toggle button */}
-      <button
-        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-md p-1.5 rounded-r-sm hover:bg-muted transition-colors"
-      >
-        {sidebarCollapsed ? (
-          <ChevronRight size={16} className="text-tree-gray" />
-        ) : (
-          <ChevronLeft size={16} className="text-tree-gray" />
-        )}
-      </button>
+      {/* Sidebar toggle button - hide on mobile when no course is selected */}
+      {!isMobile && (
+        <button
+          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-md p-1.5 rounded-r-sm hover:bg-muted transition-colors"
+        >
+          {sidebarCollapsed ? (
+            <ChevronRight size={16} className="text-tree-gray" />
+          ) : (
+            <ChevronLeft size={16} className="text-tree-gray" />
+          )}
+        </button>
+      )}
       
       {/* Content View */}
       <div className={`bg-white transition-all duration-300 ${
-        sidebarCollapsed ? 'w-full' : 'w-full sm:w-1/2 md:w-2/3 lg:w-7/10'
-      }`}>
-        <CourseDetail 
-          course={courseDetails ?? null} 
-          path={selectedCourse?.path}
-        />
+        sidebarCollapsed ? 'w-full' : isMobile ? 'w-full h-1/2' : 'w-full md:w-1/2 lg:w-2/3'
+      } ${isMobile && !selectedCourse ? 'hidden' : 'flex flex-col'}`}>
+        {/* Mobile back button */}
+        {isMobile && selectedCourse && (
+          <div className="p-2 border-b">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="flex items-center" 
+              onClick={() => setSelectedCourse(null)}
+            >
+              <ChevronLeft size={16} className="mr-1" />
+              Back to courses
+            </Button>
+          </div>
+        )}
+        
+        {/* Calendar accordion - only show if user has favorites */}
+        {favorites.length > 0 && (
+          <Accordion type="single" collapsible className="w-full border-b">
+            <AccordionItem value="calendar" className="border-0">
+              <AccordionTrigger className="px-6 py-3">
+                <div className="flex items-center text-sm">
+                  <CalendarIcon className="h-4 w-4 mr-2" />
+                  Your Schedule
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="p-4">
+                  <p className="text-sm mb-3">Quick view of your upcoming course sessions:</p>
+                  {/* We'd show some minimal calendar data here */}
+                  <div className="flex justify-between mb-4">
+                    <Button variant="outline" size="sm" asChild>
+                      <a href="/calendar">
+                        <CalendarIcon className="h-4 w-4 mr-2" />
+                        Calendar View
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+        
+        {/* Course details */}
+        <div className="flex-1 overflow-y-auto">
+          <CourseDetail 
+            course={courseDetails ?? null} 
+            path={selectedCourse?.path}
+          />
+        </div>
       </div>
     </div>
   );
