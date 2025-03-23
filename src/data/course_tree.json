@@ -1,0 +1,85 @@
+
+[
+  {
+    "number": "19256",
+    "name": "Basic Introduction to Advanced MRI and Analysis Techniques for Neuro-Applications",
+    "type": "Vorlesung",
+    "semester": "SoSe 2025",
+    "sws": 2.0,
+    "max_participants": 0,
+    "language": "Englisch",
+    "original_url": "data:image/png;base64",
+    "schedule": [
+      {
+        "day": "",
+        "time_start": "Mi.",
+        "time_end": "",
+        "rhythm": "16:00 bis 17:30 s.t.",
+        "first_date": "",
+        "last_date": "",
+        "room": "23.04.2025 bis 23.07.2025",
+        "room_link": ""
+      }
+    ],
+    "instructors": [],
+    "description": "3 ECTS; Klinikum rechts der Isar (MRI), Seminarraum (33.3.25), Holbeinstr. 11, 3. OG; see schedule for more information; Registration per email is requested until April 20 to preibisch@tum.de",
+    "literature": "",
+    "requirements": "",
+    "target_group": "",
+    "registration_info": "",
+    "evaluation_method": "",
+    "faculties": [],
+    "departments": [],
+    "degree_programs": [],
+    "modules": [],
+    "registration_periods": [],
+    "has_content": true,
+    "processing_date": "2025-03-22 19:41:27",
+    "scrape_success": true,
+    "error_message": ""
+  },
+  {
+    "number": "14464",
+    "name": "Aktuelle Fragestellungen des Fachs Altskandinavistik",
+    "type": "Kolloquium",
+    "semester": "SoSe 2025",
+    "sws": 2.0,
+    "max_participants": 18,
+    "language": "Deutsch",
+    "original_url": "data:image/png;base64",
+    "schedule": [
+      {
+        "day": "",
+        "time_start": "Mi.",
+        "time_end": "",
+        "rhythm": "18:00 bis 19:30 s.t.",
+        "first_date": "",
+        "last_date": "",
+        "room": "23.04.2025 bis 23.07.2025",
+        "room_link": ""
+      }
+    ],
+    "instructors": [
+      {
+        "name": "Schellingstr. 33, RG - 2010 Geschossplan",
+        "title": "",
+        "link": ""
+      }
+    ],
+    "description": "Sample description",
+    "literature": "",
+    "requirements": "",
+    "target_group": "",
+    "registration_info": "",
+    "evaluation_method": "",
+    "faculties": [],
+    "departments": [],
+    "degree_programs": [],
+    "modules": [],
+    "registration_periods": [],
+    "has_content": true,
+    "processing_date": "2025-03-22 19:41:27",
+    "scrape_success": true,
+    "error_message": ""
+  }
+]

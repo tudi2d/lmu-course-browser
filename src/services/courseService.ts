@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Json } from "@/integrations/supabase/types";
+import courseTreeData from "@/data/course_tree.json";
 
 // Type definitions
 export interface Schedule {
@@ -28,7 +29,7 @@ export interface Course {
   max_participants?: number;
   language?: string;
   schedule?: Schedule[];
-  instructors?: string[];
+  instructors?: any[]; // Using any[] because the structure seems mixed
   description?: string;
   literature?: string;
   requirements?: string;
@@ -53,42 +54,68 @@ export interface CourseTreeItem {
   course: Course;
 }
 
-// Function to fetch course tree data
+// Function to fetch course tree data from local JSON
 export const fetchCourseTree = async (): Promise<CourseTreeItem[]> => {
   try {
+    // Transform the JSON data to match our CourseTreeItem interface
+    const transformedData: CourseTreeItem[] = courseTreeData.map((course, index) => {
+      // Create a simple path based on course type or other attributes
+      const pathParts = [];
+      
+      if (course.semester) {
+        pathParts.push(course.semester);
+      } else {
+        pathParts.push("Unknown Semester");
+      }
+      
+      if (course.type) {
+        pathParts.push(course.type);
+      } else {
+        pathParts.push("Unknown Type");
+      }
+      
+      return {
+        id: index.toString(),
+        path: pathParts,
+        course_id: course.number,
+        course: course as Course
+      };
+    });
+    
+    return transformedData;
+  } catch (error) {
+    console.error('Error loading course tree data:', error);
+    toast({
+      title: "Error loading courses",
+      description: "Could not load course data",
+      variant: "destructive",
+    });
+    return [];
+  }
+};
+
+// Function to fetch course details from Supabase by course number
+export const fetchCourseDetails = async (courseNumber: string): Promise<Course | null> => {
+  try {
     const { data, error } = await supabase
-      .from('course_tree')
-      .select(`
-        id,
-        path,
-        course_id,
-        courses:course_id (*)
-      `);
+      .from('courses')
+      .select('*')
+      .eq('number', courseNumber)
+      .single();
 
     if (error) {
-      console.error('Error fetching course tree:', error);
-      toast({
-        title: "Error fetching courses",
-        description: error.message,
-        variant: "destructive",
-      });
-      return [];
+      console.error('Error fetching course details:', error);
+      return null;
     }
 
-    // Transform data to match our CourseTreeItem interface
-    return data.map((item) => ({
-      id: item.id,
-      path: item.path,
-      course_id: item.course_id,
-      course: {
-        ...item.courses as any,
-        // Convert schedule from Json to Schedule[] if it exists
-        schedule: item.courses?.schedule ? (item.courses.schedule as any as Schedule[]) : undefined
-      },
-    }));
+    return {
+      ...data,
+      // Convert schedule from Json to Schedule[] if it exists
+      schedule: data.schedule ? (data.schedule as any as Schedule[]) : undefined
+    } as Course;
   } catch (error) {
-    console.error('Unexpected error fetching course tree:', error);
-    return [];
+    console.error('Unexpected error fetching course details:', error);
+    return null;
   }
 };
 

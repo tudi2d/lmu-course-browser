@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import TreeNode from './TreeNode';
 import CourseDetail from './CourseDetail';
 import { ChevronLeft, ChevronRight, Search, Calendar as CalendarIcon } from 'lucide-react';
-import { fetchCourseTree, CourseTreeItem } from '@/services/courseService';
+import { fetchCourseTree, fetchCourseDetails, CourseTreeItem } from '@/services/courseService';
 import { toast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 
@@ -17,11 +17,12 @@ const TreeBrowser: React.FC = () => {
   const [treeData, setTreeData] = useState<TreeNode>({ name: 'root', children: {}, courses: [] });
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
   const [selectedCourse, setSelectedCourse] = useState<CourseTreeItem | null>(null);
+  const [courseDetails, setCoursedDetails] = useState<any | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   
-  // Fetch course data from Supabase
+  // Fetch course data from local JSON
   useEffect(() => {
     const loadCourseData = async () => {
       setLoading(true);
@@ -60,6 +61,32 @@ const TreeBrowser: React.FC = () => {
     
     loadCourseData();
   }, []);
+
+  // Load course details when a course is selected
+  useEffect(() => {
+    const loadCourseDetails = async () => {
+      if (selectedCourse && selectedCourse.course_id) {
+        try {
+          // Use the courseNumber to fetch details
+          const details = await fetchCourseDetails(selectedCourse.course_id);
+          if (details) {
+            setCoursedDetails(details);
+          } else {
+            // If no details in the database, use the data from JSON
+            setCoursedDetails(selectedCourse.course);
+          }
+        } catch (error) {
+          console.error('Error loading course details:', error);
+          // Fallback to JSON data if database query fails
+          setCoursedDetails(selectedCourse.course);
+        }
+      } else {
+        setCoursedDetails(null);
+      }
+    };
+
+    loadCourseDetails();
+  }, [selectedCourse]);
   
   // Build tree data from flat data
   const buildTree = (courseItems: CourseTreeItem[]) => {
@@ -211,7 +238,7 @@ const TreeBrowser: React.FC = () => {
         sidebarCollapsed ? 'w-full' : 'w-full sm:w-1/2 md:w-2/3 lg:w-7/10'
       }`}>
         <CourseDetail 
-          course={selectedCourse?.course ?? null} 
+          course={courseDetails ?? null} 
           path={selectedCourse?.path}
         />
       </div>
