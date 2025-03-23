@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import TreeNode from './TreeNode';
 import CourseDetail from './CourseDetail';
@@ -11,6 +10,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Input } from '@/components/ui/input';
+import CalendarModal from './CalendarModal';
 
 interface TreeNode {
   name: string;
@@ -32,21 +32,18 @@ const TreeBrowser: React.FC = () => {
   
   const isMobile = useIsMobile();
   
-  // Function to build tree data from flat data
   const buildTree = useCallback((courseItems: CourseTreeItem[]) => {
     const root: TreeNode = { name: 'root', children: {}, courses: [] };
     
     courseItems.forEach(item => {
       let currentNode = root;
       
-      // Add path nodes
       item.path.forEach((pathPart, idx) => {
         if (!currentNode.children[pathPart]) {
           currentNode.children[pathPart] = { name: pathPart, children: {}, courses: [] };
         }
         currentNode = currentNode.children[pathPart];
         
-        // Add course to leaf node
         if (idx === item.path.length - 1) {
           currentNode.courses.push(item);
         }
@@ -56,7 +53,6 @@ const TreeBrowser: React.FC = () => {
     return root;
   }, []);
   
-  // Fetch course data from local JSON
   useEffect(() => {
     const loadCourseData = async () => {
       setLoading(true);
@@ -66,7 +62,6 @@ const TreeBrowser: React.FC = () => {
           const builtTree = buildTree(courseTreeData);
           setTreeData(builtTree);
           
-          // Auto-expand first level
           const firstLevelNodes = new Set<string>();
           courseTreeData.forEach(item => {
             if (item.path[0]) {
@@ -96,7 +91,6 @@ const TreeBrowser: React.FC = () => {
     loadCourseData();
   }, [buildTree]);
 
-  // Load user favorites
   useEffect(() => {
     const loadFavorites = async () => {
       try {
@@ -111,22 +105,18 @@ const TreeBrowser: React.FC = () => {
     loadFavorites();
   }, []);
 
-  // Load course details when a course is selected
   useEffect(() => {
     const loadCourseDetails = async () => {
       if (selectedCourse && selectedCourse.course_id) {
         try {
-          // Use the courseNumber to fetch details
           const details = await fetchCourseDetails(selectedCourse.course_id);
           if (details) {
             setCoursedDetails(details);
           } else {
-            // If no details in the database, use the data from JSON
             setCoursedDetails(selectedCourse.course);
           }
         } catch (error) {
           console.error('Error loading course details:', error);
-          // Fallback to JSON data if database query fails
           setCoursedDetails(selectedCourse.course);
         }
       } else {
@@ -137,16 +127,13 @@ const TreeBrowser: React.FC = () => {
     loadCourseDetails();
   }, [selectedCourse]);
   
-  // Filter tree items based on search query and active tab
   const filteredTreeData = useMemo(() => {
     if (!searchQuery && activeTab === 'all-courses') {
       return treeData;
     }
     
-    // Start with a copy of the original tree
     const filteredRoot: TreeNode = { name: 'root', children: {}, courses: [] };
     
-    // Helper function to check if a course matches the search query
     const courseMatchesSearch = (course: CourseTreeItem) => {
       if (!searchQuery) return true;
       
@@ -159,12 +146,10 @@ const TreeBrowser: React.FC = () => {
       );
     };
     
-    // Helper function to recursively filter the tree
     const filterNode = (node: TreeNode, parentPath: string[] = []): TreeNode | null => {
       const filteredNode: TreeNode = { name: node.name, children: {}, courses: [] };
       let hasMatchingContent = false;
       
-      // Filter courses
       node.courses.forEach(course => {
         const isFavorite = course.course.id && favorites.includes(course.course.id);
         const shouldInclude = courseMatchesSearch(course) && 
@@ -176,7 +161,6 @@ const TreeBrowser: React.FC = () => {
         }
       });
       
-      // Recursively filter children
       Object.entries(node.children).forEach(([key, childNode]) => {
         const childPath = [...parentPath, key];
         const filteredChild = filterNode(childNode, childPath);
@@ -220,7 +204,6 @@ const TreeBrowser: React.FC = () => {
           const hasChildren = Object.keys(childNode.children).length > 0;
           const hasCourses = childNode.courses.length > 0;
           
-          // We'll highlight nodes that match the search query
           const matchesSearch = searchQuery && name.toLowerCase().includes(searchQuery.toLowerCase());
           
           return (
@@ -237,7 +220,6 @@ const TreeBrowser: React.FC = () => {
               >
                 {isExpanded && hasChildren && renderTreeNodes(childNode, level + 1, currentPath)}
                 {isExpanded && hasCourses && childNode.courses.map((courseItem, index) => {
-                  // Check if this course is a favorite for the favorites tab
                   const isFavorite = courseItem.course.id && favorites.includes(courseItem.course.id);
                   const courseMatchesSearch = searchQuery && (
                     courseItem.course.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -270,22 +252,12 @@ const TreeBrowser: React.FC = () => {
   
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
-      {/* Sidebar / Tree View */}
       <div
         className={`border-r border-muted transition-all duration-300 ease-in-out ${
           sidebarCollapsed ? 'w-0' : isMobile ? 'w-full h-1/2' : 'w-full md:w-1/2 lg:w-1/3'
         } ${isMobile && selectedCourse ? 'hidden' : 'flex'}`}
       >
         <div className="flex flex-col h-full w-full">
-          {/* Tabs for All Courses and Favorites */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full">
-              <TabsTrigger className="flex-1" value="all-courses">All Courses</TabsTrigger>
-              <TabsTrigger className="flex-1" value="favorites">Favorites</TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          {/* Search bar */}
           <div className="p-4 border-b border-muted">
             <div className="relative">
               <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
@@ -299,19 +271,19 @@ const TreeBrowser: React.FC = () => {
             </div>
           </div>
           
-          {/* Calendar view link - now available in Content View for more space */}
-          {!isMobile && (
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full">
+              <TabsTrigger className="flex-1" value="all-courses">All Courses</TabsTrigger>
+              <TabsTrigger className="flex-1" value="favorites">Favorites</TabsTrigger>
+            </TabsList>
+          </Tabs>
+          
+          {!isMobile && activeTab === 'favorites' && (
             <div className="p-2 border-b border-muted">
-              <Button variant="outline" size="sm" className="w-full justify-start" asChild>
-                <a href="/calendar">
-                  <CalendarIcon className="h-4 w-4 mr-2" />
-                  Calendar View
-                </a>
-              </Button>
+              <CalendarModal />
             </div>
           )}
           
-          {/* Tree navigation */}
           <div className="overflow-y-auto h-full">
             {loading ? (
               <div className="p-4 text-sm text-muted-foreground">Loading courses...</div>
@@ -326,7 +298,6 @@ const TreeBrowser: React.FC = () => {
         </div>
       </div>
       
-      {/* Sidebar toggle button - hide on mobile when no course is selected */}
       {!isMobile && (
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -340,11 +311,9 @@ const TreeBrowser: React.FC = () => {
         </button>
       )}
       
-      {/* Content View */}
       <div className={`bg-white transition-all duration-300 ${
         sidebarCollapsed ? 'w-full' : isMobile ? 'w-full h-1/2' : 'w-full md:w-1/2 lg:w-2/3'
       } ${isMobile && !selectedCourse ? 'hidden' : 'flex flex-col'}`}>
-        {/* Mobile back button */}
         {isMobile && selectedCourse && (
           <div className="p-2 border-b">
             <Button 
@@ -359,7 +328,6 @@ const TreeBrowser: React.FC = () => {
           </div>
         )}
         
-        {/* Calendar accordion - only show if user has favorites */}
         {favorites.length > 0 && (
           <Accordion type="single" collapsible className="w-full border-b">
             <AccordionItem value="calendar" className="border-0">
@@ -372,7 +340,6 @@ const TreeBrowser: React.FC = () => {
               <AccordionContent>
                 <div className="p-4">
                   <p className="text-sm mb-3">Quick view of your upcoming course sessions:</p>
-                  {/* We'd show some minimal calendar data here */}
                   <div className="flex justify-between mb-4">
                     <Button variant="outline" size="sm" asChild>
                       <a href="/calendar">
@@ -387,7 +354,6 @@ const TreeBrowser: React.FC = () => {
           </Accordion>
         )}
         
-        {/* Course details */}
         <div className="flex-1 overflow-y-auto">
           <CourseDetail 
             course={courseDetails ?? null} 

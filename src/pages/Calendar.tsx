@@ -1,11 +1,12 @@
 
 import React from 'react';
-import CalendarView from '@/components/CalendarView';
+import CalendarModal from '@/components/CalendarModal';
 
 const Calendar = () => {
   return (
-    <div className="min-h-screen bg-white">
-      <CalendarView />
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <CalendarModal showButton={false} />
+      <script dangerouslySetInnerHTML={{ __html: 'document.querySelector("[role=\'dialog\']")?.click()' }} />
     </div>
   );
 };
