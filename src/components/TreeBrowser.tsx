@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import TreeNode from "./TreeNode";
 import CourseDetail from "./CourseDetail";
 import {
@@ -45,12 +44,24 @@ const TreeBrowser: React.FC = () => {
   const [activeTabIndex, setActiveTabIndex] = useState<number>(-1);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all-courses");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
   
   const isMobile = useIsMobile();
+
+  // Add debounce to search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchQuery]);
 
   useEffect(() => {
     const loadCourseData = async () => {
@@ -133,11 +144,12 @@ const TreeBrowser: React.FC = () => {
     loadFavorites();
   }, []);
 
+  // Update to use debouncedSearchQuery instead of searchQuery for node expansion
   useEffect(() => {
-    if (!searchQuery || !treeData) return;
+    if (!debouncedSearchQuery || !treeData) return;
     
     const nodesToExpand = new Set<string>();
-    const searchLowerCase = searchQuery.toLowerCase();
+    const searchLowerCase = debouncedSearchQuery.toLowerCase();
     
     const findMatchingNodes = (node: CourseNode, parentPath: string[] = []): boolean => {
       const currentPath = [...parentPath, node.name];
@@ -168,7 +180,7 @@ const TreeBrowser: React.FC = () => {
     findMatchingNodes(treeData);
     
     setExpandedNodes(nodesToExpand);
-  }, [searchQuery, treeData]);
+  }, [debouncedSearchQuery, treeData]);
 
   const loadCourseDetails = async (courseId: string): Promise<Course | null> => {
     if (courseId) {
@@ -239,6 +251,8 @@ const TreeBrowser: React.FC = () => {
     setSearchQuery("");
   };
 
+  // Update filteredTreeData to use the regular searchQuery for filtering
+  // but we'll only expand nodes based on the debounced query
   const filteredTreeData = useMemo(() => {
     if (!searchQuery && activeTab === "all-courses") {
       return treeData;
