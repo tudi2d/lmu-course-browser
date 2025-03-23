@@ -286,7 +286,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
 
           {/* Schedule Tab */}
           <TabsContent value="schedule" className="pt-4">
-            {courseData.schedule && courseData.schedule.length > 0 ? (
+            {courseData.schedule && Array.isArray(courseData.schedule) && courseData.schedule.length > 0 ? (
               <div>
                 <Table>
                   <TableHeader>

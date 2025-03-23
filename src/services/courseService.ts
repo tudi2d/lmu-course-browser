@@ -42,8 +42,9 @@ export interface CourseTreeItem {
 
 // Define CourseNode type from the course_tree.json structure
 export interface CourseNode {
-  id: string;
+  id?: string;
   name: string;
+  value?: string;
   course?: Course;
   children?: CourseNode[];
   [key: string]: any;
@@ -56,7 +57,7 @@ export function isCourseNodeArray(value: any[] | CourseNode): value is any[] {
 
 export const fetchCourseTree = async (): Promise<CourseNode> => {
   // Return local data for now, later can be replaced with actual API call
-  return courseTreeData as CourseNode;
+  return courseTreeData as unknown as CourseNode;
 };
 
 export const fetchCourseDetails = async (courseId: string): Promise<any> => {

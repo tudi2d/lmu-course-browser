@@ -207,6 +207,7 @@ const TreeBrowser: React.FC = () => {
       }
 
       const filteredNode: CourseNode = {
+        id: node.id,
         name: node.name,
         value: node.value,
         children: [],
@@ -354,7 +355,12 @@ const TreeBrowser: React.FC = () => {
                       Create an account to save your favorite courses
                     </p>
                     <Button 
-                      onClick={() => document.querySelector('[aria-label="Sign In"]')?.click()}
+                      onClick={() => {
+                        const signInButton = document.querySelector('[aria-label="Sign In"]');
+                        if (signInButton && 'click' in signInButton) {
+                          (signInButton as HTMLElement).click();
+                        }
+                      }}
                       className="gap-2"
                     >
                       <User size={16} />
