@@ -51,6 +51,11 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
   
   const isFavorite = isCourse && node.value && favorites.includes(node.value);
 
+  // Debug node rendering in favorites mode
+  if (isFavorite) {
+    console.log("Rendering favorite node:", node.name, node.value);
+  }
+
   return (
     <React.Fragment key={nodePath}>
       <TreeNode

@@ -42,13 +42,42 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   // State to check if we have favorited courses in structure
   const [hasFavoritesInTree, setHasFavoritesInTree] = useState(false);
   
+  // Debug favorites data directly
+  useEffect(() => {
+    if (activeTab === "favorites") {
+      console.log("Favorites tab selected with favorites:", favorites);
+      console.log("Filtered tree data:", filteredTreeData);
+    }
+  }, [activeTab, favorites, filteredTreeData]);
+  
   // Check if we have any favorites in the tree structure
   useEffect(() => {
-    if (activeTab === "favorites" && filteredTreeData && filteredTreeData.children) {
-      // Check if any nodes are visible after filtering
-      const hasVisibleNodes = filteredTreeData.children.length > 0;
-      setHasFavoritesInTree(hasVisibleNodes);
+    if (activeTab === "favorites" && filteredTreeData) {
+      // CRITICAL FIX: Properly check if any courses are found after filtering
+      let hasVisibleNodes = false;
+      
+      const checkForVisibleCourses = (node: CourseNode): boolean => {
+        // Direct check if this is a course and in favorites
+        if (node.value && favorites.includes(node.value)) {
+          return true;
+        }
+        
+        // Check children recursively
+        if (node.children && node.children.length > 0) {
+          for (const child of node.children) {
+            if (checkForVisibleCourses(child)) {
+              return true;
+            }
+          }
+        }
+        
+        return false;
+      };
+      
+      hasVisibleNodes = checkForVisibleCourses(filteredTreeData);
+      
       console.log("Favorites tab has visible nodes:", hasVisibleNodes);
+      setHasFavoritesInTree(hasVisibleNodes);
     }
   }, [activeTab, filteredTreeData, favorites]);
 
@@ -120,8 +149,8 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                 No courses found. Try clearing your search or check that your favorite courses
                 are still available in the course catalog.
               </div>
-            ) : filteredTreeData && filteredTreeData.children?.length > 0 ? (
-              filteredTreeData.children?.map((childNode) => (
+            ) : filteredTreeData && filteredTreeData.children && filteredTreeData.children.length > 0 ? (
+              filteredTreeData.children.map((childNode) => (
                 <CourseTreeRenderer
                   key={childNode.name}
                   node={childNode}

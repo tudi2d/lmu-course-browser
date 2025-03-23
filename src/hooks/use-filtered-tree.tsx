@@ -48,10 +48,15 @@ export function useFilteredTree(
       return false;
     };
 
+    // CRITICAL FIX: This is a direct check if a node is a favorite
+    const isNodeFavorite = (node: CourseNode): boolean => {
+      return node.value !== undefined && favorites.includes(node.value);
+    };
+
     // Check if this node or any of its descendants are in favorites
     const nodeHasFavorites = (node: CourseNode): boolean => {
       // If this node is a course and is in favorites, return true
-      if (node.value && favorites.includes(node.value)) {
+      if (isNodeFavorite(node)) {
         return true;
       }
 
@@ -69,6 +74,13 @@ export function useFilteredTree(
 
     // For favorites tab, filter to only keep nodes that are in favorites or have descendants in favorites
     const filterForFavorites = (node: CourseNode): CourseNode | null => {
+      // Direct check if this node is a favorite course
+      const isInFavorites = isNodeFavorite(node);
+      
+      if (isInFavorites) {
+        console.log("Found favorite node:", node.name, node.value);
+      }
+
       // New node with same properties but empty children
       const filteredNode: CourseNode = {
         id: node.id,
@@ -77,18 +89,15 @@ export function useFilteredTree(
         children: [],
       };
 
-      // If this is a course and it's in favorites, include it
-      const isInFavorites = node.value && favorites.includes(node.value);
-
       // Process children recursively
       if (node.children && node.children.length > 0) {
-        node.children.forEach(child => {
+        for (const child of node.children) {
           const filteredChild = filterForFavorites(child);
           if (filteredChild) {
             if (!filteredNode.children) filteredNode.children = [];
             filteredNode.children.push(filteredChild);
           }
-        });
+        }
       }
 
       // Return this node if it's a favorite OR has children with favorites
@@ -148,22 +157,61 @@ export function useFilteredTree(
         };
       }
       
-      console.log("Filtering for favorites");
-      result = filterForFavorites(result);
+      console.log("Filtering for favorites:", favorites);
+      const favoritesResult = filterForFavorites(result);
+      
+      // CRITICAL FIX: Make sure we're not losing the root node structure
+      if (favoritesResult) {
+        result = favoritesResult;
+      } else {
+        // If nothing matched, return empty children but keep root structure
+        result = {
+          id: treeData.id,
+          name: treeData.name,
+          value: treeData.value,
+          children: [],
+        };
+      }
       
       // If there's also a search query, filter the favorites result
-      if (searchQuery) {
+      if (searchQuery && result) {
         console.log("Additionally filtering favorites by search");
-        result = result ? filterForSearch(result) : null;
+        const searchResult = filterForSearch(result);
+        if (searchResult) {
+          result = searchResult;
+        } else {
+          // If nothing matched the search, return empty children
+          result = {
+            id: treeData.id,
+            name: treeData.name,
+            value: treeData.value,
+            children: [],
+          };
+        }
       }
     }
     // If on all courses tab with search
     else if (searchQuery) {
       console.log("Filtering for search");
-      result = filterForSearch(result);
+      const searchResult = filterForSearch(result);
+      if (searchResult) {
+        result = searchResult;
+      } else {
+        // If nothing matched the search, return empty children
+        result = {
+          id: treeData.id,
+          name: treeData.name,
+          value: treeData.value,
+          children: [],
+        };
+      }
     }
 
-    console.log("Filtering result:", result);
+    console.log("Filtering result:", {
+      hasChildren: result?.children?.length > 0,
+      childrenCount: result?.children?.length || 0
+    });
+    
     return result;
   }, [treeData, searchQuery, activeTab, favorites]);
 
