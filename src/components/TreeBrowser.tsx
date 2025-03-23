@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import TreeNode from "./TreeNode";
 import CourseDetail from "./CourseDetail";
@@ -13,8 +14,8 @@ import {
   fetchCourseTree,
   fetchCourseDetails,
   fetchFavorites,
-  CourseNode,
-  Course,
+  type CourseNode,
+  type Course,
 } from "@/services/courseService";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
@@ -103,6 +104,52 @@ const TreeBrowser: React.FC = () => {
 
     loadFavorites();
   }, [user]);
+
+  // New effect to expand nodes when search query changes
+  useEffect(() => {
+    if (!searchQuery || !treeData) return;
+    
+    const nodesToExpand = new Set<string>();
+    const searchLowerCase = searchQuery.toLowerCase();
+    
+    // Function to find nodes that match the search query
+    const findMatchingNodes = (node: CourseNode, parentPath: string[] = []): boolean => {
+      const currentPath = [...parentPath, node.name];
+      const nodePath = currentPath.join("/");
+      let hasMatchingChild = false;
+      
+      // Check if this node's name matches the search
+      const nameMatches = node.name.toLowerCase().includes(searchLowerCase);
+      
+      // Check if any children match the search
+      if (node.children) {
+        for (const child of node.children) {
+          if (findMatchingNodes(child, currentPath)) {
+            hasMatchingChild = true;
+          }
+        }
+      }
+      
+      // If this node matches or has a matching child, add all parent paths to the set
+      if (nameMatches || hasMatchingChild) {
+        // Add all parent paths to the set
+        for (let i = 0; i < currentPath.length; i++) {
+          const path = currentPath.slice(0, i + 1).join("/");
+          nodesToExpand.add(path);
+        }
+        return true;
+      }
+      
+      return false;
+    };
+    
+    // Start the search from the root
+    findMatchingNodes(treeData);
+    
+    // Update the expanded nodes
+    setExpandedNodes(nodesToExpand);
+    
+  }, [searchQuery, treeData]);
 
   const loadCourseDetails = async (courseId: string): Promise<Course | null> => {
     if (courseId) {
