@@ -5,14 +5,23 @@ import { supabase } from '@/integrations/supabase/client';
 const LOCAL_FAVORITES_KEY = 'course_favorites';
 
 // Helper function to get favorites from local storage
-const getLocalFavorites = (): string[] => {
-  const stored = localStorage.getItem(LOCAL_FAVORITES_KEY);
-  return stored ? JSON.parse(stored) : [];
+export const getLocalFavorites = (): string[] => {
+  try {
+    const stored = localStorage.getItem(LOCAL_FAVORITES_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error reading favorites from localStorage:', error);
+    return [];
+  }
 };
 
 // Helper function to save favorites to local storage
-const saveLocalFavorites = (favorites: string[]): void => {
-  localStorage.setItem(LOCAL_FAVORITES_KEY, JSON.stringify(favorites));
+export const saveLocalFavorites = (favorites: string[]): void => {
+  try {
+    localStorage.setItem(LOCAL_FAVORITES_KEY, JSON.stringify(favorites));
+  } catch (error) {
+    console.error('Error saving favorites to localStorage:', error);
+  }
 };
 
 // Sync local favorites with database when user logs in

@@ -7,7 +7,14 @@ import { isUUID } from '@/utils/validators';
 
 export type { CourseNode, Course, CourseTreeItem, Schedule } from './types';
 export { isCourseNodeArray } from './types';
-export { fetchFavorites, isFavorite, addFavorite, removeFavorite, toggleFavorite } from './favoriteService';
+export { 
+  fetchFavorites, 
+  isFavorite, 
+  addFavorite, 
+  removeFavorite, 
+  toggleFavorite,
+  syncFavoritesOnLogin 
+} from './favoriteService';
 
 export const fetchCourseTree = async (): Promise<CourseNode> => {
   // Return local data for now, later can be replaced with actual API call
