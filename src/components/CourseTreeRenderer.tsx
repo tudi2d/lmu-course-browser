@@ -37,14 +37,8 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
   const isCourse = node.value !== undefined;
   const isFavorite = isCourse && node.value && favorites.includes(node.value);
 
-  // In favorites tab, we want to auto-expand nodes that lead to favorites
-  const shouldAutoExpand = Boolean(
-    searchQuery || 
-    (hasChildren && node.children?.some(child => 
-      child.value && favorites.includes(child.value) || 
-      (child.children && child.children.length > 0)
-    ))
-  );
+  // In favorites tab, we want to auto-expand nodes
+  const shouldAutoExpand = Boolean(searchQuery);
   
   // Debug information
   if (isFavorite) {

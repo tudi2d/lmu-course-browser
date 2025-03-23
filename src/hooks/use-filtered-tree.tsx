@@ -27,33 +27,8 @@ export function useFilteredTree(
     // Start with a clone of the original tree
     let result = cloneTree(treeData);
 
-    // Apply filters based on the active tab
-    if (activeTab === "favorites") {
-      // Filter for favorites first
-      if (favorites.length === 0) {
-        // If no favorites, return empty tree
-        console.log("No favorites - returning empty tree");
-        return {
-          ...result,
-          children: []
-        };
-      }
-      
-      console.log("Filtering for favorites:", favorites);
-      // Apply favorites filter
-      result = filterForFavorites(result, favorites);
-      
-      // Then apply search filter if needed
-      if (searchQuery) {
-        console.log("Additionally filtering favorites by search");
-        const searchResult = filterForSearch(result, searchQuery);
-        if (searchResult) {
-          result = searchResult;
-        }
-      }
-    } 
-    // All courses tab with search
-    else if (searchQuery) {
+    // Apply search filter if needed
+    if (searchQuery) {
       console.log("Filtering for search");
       const searchResult = filterForSearch(result, searchQuery);
       if (searchResult) {

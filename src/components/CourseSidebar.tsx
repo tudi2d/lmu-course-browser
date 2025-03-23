@@ -46,30 +46,6 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
       console.log("Filtered tree data:", filteredTreeData);
     }
   }, [activeTab, favorites, filteredTreeData]);
-  
-  // Helper function to check if we have any courses in the tree
-  const hasCoursesInTree = (node: CourseNode | null): boolean => {
-    if (!node) return false;
-    
-    // If this node is a course in favorites, return true
-    if (node.value && favorites.includes(node.value)) {
-      return true;
-    }
-    
-    // Check children recursively
-    if (node.children && node.children.length > 0) {
-      for (const child of node.children) {
-        if (hasCoursesInTree(child)) {
-          return true;
-        }
-      }
-    }
-    
-    return false;
-  };
-
-  // Check if any favorites are in the filtered tree
-  const hasFavoritesInTree = filteredTreeData ? hasCoursesInTree(filteredTreeData) : false;
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -133,11 +109,6 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
               <div className="p-4 text-sm text-muted-foreground">
                 You don't have any favorite courses yet. Browse courses and
                 click the heart icon to add favorites.
-              </div>
-            ) : (activeTab === "favorites" && favorites.length > 0 && !hasFavoritesInTree) ? (
-              <div className="p-4 text-sm text-muted-foreground">
-                No courses found. Try clearing your search or check that your favorite courses
-                are still available in the course catalog.
               </div>
             ) : filteredTreeData && filteredTreeData.children && filteredTreeData.children.length > 0 ? (
               filteredTreeData.children.map((childNode) => (
