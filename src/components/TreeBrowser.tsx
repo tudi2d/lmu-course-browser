@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import TreeNode from "./TreeNode";
 import CourseDetail from "./CourseDetail";
@@ -14,6 +13,7 @@ import {
   fetchCourseTree,
   fetchCourseDetails,
   fetchFavorites,
+  syncFavoritesOnLogin,
   type CourseNode,
   type Course,
 } from "@/services/courseService";
@@ -74,54 +74,55 @@ const TreeBrowser: React.FC = () => {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user || null);
+      const newUser = session?.user || null;
+      setUser(newUser);
+      
+      if (newUser && !user) {
+        syncFavoritesOnLogin(newUser.id);
+      }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setUser(session?.user || null);
+        const newUser = session?.user || null;
+        if (event === 'SIGNED_IN' && newUser && !user) {
+          syncFavoritesOnLogin(newUser.id);
+        }
+        setUser(newUser);
       }
     );
 
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const loadFavorites = async () => {
-      if (user) {
-        try {
-          const userFavorites = await fetchFavorites();
-          setFavorites(userFavorites);
-        } catch (error) {
-          console.error("Error loading favorites:", error);
-        }
-      } else {
-        setFavorites([]);
+      try {
+        const userFavorites = await fetchFavorites();
+        setFavorites(userFavorites);
+      } catch (error) {
+        console.error("Error loading favorites:", error);
       }
     };
 
     loadFavorites();
-  }, [user]);
+  }, []);
 
-  // New effect to expand nodes when search query changes
   useEffect(() => {
     if (!searchQuery || !treeData) return;
     
     const nodesToExpand = new Set<string>();
     const searchLowerCase = searchQuery.toLowerCase();
     
-    // Function to find nodes that match the search query
     const findMatchingNodes = (node: CourseNode, parentPath: string[] = []): boolean => {
       const currentPath = [...parentPath, node.name];
       const nodePath = currentPath.join("/");
       let hasMatchingChild = false;
       
-      // Check if this node's name matches the search
       const nameMatches = node.name.toLowerCase().includes(searchLowerCase);
       
-      // Check if any children match the search
       if (node.children) {
         for (const child of node.children) {
           if (findMatchingNodes(child, currentPath)) {
@@ -130,9 +131,7 @@ const TreeBrowser: React.FC = () => {
         }
       }
       
-      // If this node matches or has a matching child, add all parent paths to the set
       if (nameMatches || hasMatchingChild) {
-        // Add all parent paths to the set
         for (let i = 0; i < currentPath.length; i++) {
           const path = currentPath.slice(0, i + 1).join("/");
           nodesToExpand.add(path);
@@ -143,12 +142,9 @@ const TreeBrowser: React.FC = () => {
       return false;
     };
     
-    // Start the search from the root
     findMatchingNodes(treeData);
     
-    // Update the expanded nodes
     setExpandedNodes(nodesToExpand);
-    
   }, [searchQuery, treeData]);
 
   const loadCourseDetails = async (courseId: string): Promise<Course | null> => {
@@ -214,6 +210,10 @@ const TreeBrowser: React.FC = () => {
     } else if (index < activeTabIndex) {
       setActiveTabIndex((prev) => prev - 1);
     }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
   };
 
   const filteredTreeData = useMemo(() => {
@@ -283,6 +283,10 @@ const TreeBrowser: React.FC = () => {
         });
       }
 
+      if (!filteredNode.value && (!filteredNode.children || filteredNode.children.length === 0)) {
+        return null;
+      }
+
       return filteredNode;
     };
 
@@ -308,11 +312,20 @@ const TreeBrowser: React.FC = () => {
   ) => {
     if (!node) return null;
 
+    if (!node.value && (!node.children || node.children.length === 0)) {
+      return null;
+    }
+
     const nodePath = [...parentPath, node.name].join("/");
     const isExpanded =
       expandedNodes.has(node.name) || expandedNodes.has(nodePath);
     const hasChildren = node.children && node.children.length > 0;
     const isCourse = node.value !== undefined;
+
+    const matchesSearch = searchQuery && 
+      (node.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (hasChildren && node.children?.some(child => 
+        child.name.toLowerCase().includes(searchQuery.toLowerCase()))));
 
     return (
       <React.Fragment key={nodePath}>
@@ -320,7 +333,7 @@ const TreeBrowser: React.FC = () => {
           name={node.name}
           level={level}
           hasChildren={hasChildren}
-          isExpanded={isExpanded}
+          isExpanded={isExpanded || matchesSearch}
           isActive={
             isCourse && openTabs.some((tab) => tab.course_id === node.value)
           }
@@ -342,7 +355,7 @@ const TreeBrowser: React.FC = () => {
             }
           }}
         >
-          {isExpanded &&
+          {(isExpanded || matchesSearch) &&
             hasChildren &&
             node.children?.map((childNode) =>
               renderTreeNodes(childNode, level + 1, [...parentPath, node.name])
@@ -375,8 +388,16 @@ const TreeBrowser: React.FC = () => {
                 placeholder="Search courses..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2"
+                className="w-full pl-9 pr-9 py-2"
               />
+              {searchQuery && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X size={16} />
+                </button>
+              )}
             </div>
           </div>
 
@@ -409,10 +430,9 @@ const TreeBrowser: React.FC = () => {
             ) : (
               <>
                 {activeTab === "favorites" && !user && (
-                  <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 p-4">
-                    <h3 className="text-lg font-medium mb-2">Sign in to add favorites</h3>
-                    <p className="text-sm text-muted-foreground mb-4 text-center">
-                      Create an account to save your favorite courses
+                  <div className="p-4 text-sm bg-muted/30 border-b">
+                    <p className="text-muted-foreground mb-2">
+                      <strong>Note:</strong> Sign in to save your favorites permanently.
                     </p>
                     <Button 
                       onClick={() => {
@@ -422,14 +442,16 @@ const TreeBrowser: React.FC = () => {
                         }
                       }}
                       className="gap-2"
+                      size="sm"
+                      variant="outline"
                     >
-                      <User size={16} />
+                      <User size={14} />
                       Sign In
                     </Button>
                   </div>
                 )}
                 
-                {activeTab === "favorites" && user && favorites.length === 0 ? (
+                {activeTab === "favorites" && favorites.length === 0 ? (
                   <div className="p-4 text-sm text-muted-foreground">
                     You don't have any favorite courses yet. Browse courses and
                     click the heart icon to add favorites.
