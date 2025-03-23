@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { ExternalLink, Calendar, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Course as CourseType,
+  Course,
   isFavorite,
   toggleFavorite,
   fetchCourseDetails,
@@ -40,7 +41,7 @@ interface CourseDetailProps {
 }
 
 const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
-  const [courseData, setCourseData] = useState<CourseType | null>(null);
+  const [courseData, setCourseData] = useState<Course | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -62,11 +63,11 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
         }
       } else if (course && typeof course === "object") {
         // If course is already an object with data
-        setCourseData(course as CourseType);
+        setCourseData(course as Course);
 
         // Check favorite status
-        if ((course as CourseType)?.id) {
-          checkFavoriteStatus((course as CourseType).id as string);
+        if ((course as Course)?.id) {
+          checkFavoriteStatus((course as Course).id as string);
         }
       }
     };
@@ -83,8 +84,10 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
     if (!courseData?.id) return;
 
     setLoading(true);
-    const newStatus = await toggleFavorite(courseData.id);
-    setIsFavorited(newStatus);
+    const success = await toggleFavorite(courseData.id, isFavorited);
+    if (success) {
+      setIsFavorited(!isFavorited);
+    }
     setLoading(false);
   };
 
