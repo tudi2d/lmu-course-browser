@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import courseTreeData from "@/data/course_tree.json";
@@ -28,7 +27,7 @@ export interface Course {
   max_participants?: number;
   language?: string;
   schedule?: Schedule[];
-  instructors?: any[]; // Using any[] because the structure seems mixed
+  instructors?: unknown[]; // Changed from any[] to unknown[]
   description?: string;
   literature?: string;
   requirements?: string;
@@ -46,6 +45,12 @@ export interface Course {
   error_message?: string;
 }
 
+export interface CourseNode {
+  name: string;
+  value?: string;
+  children?: CourseNode[];
+}
+
 export interface CourseTreeItem {
   id?: string;
   path: string[];
@@ -54,89 +59,67 @@ export interface CourseTreeItem {
 }
 
 // Cache for course data
-let courseTreeCache: CourseTreeItem[] | null = null;
+let courseTreeCache: CourseNode | null = null;
 let favoriteCache: string[] | null = null;
 let courseDetailsCache: Record<string, Course> = {};
 
 // Function to fetch course tree data from local JSON
-export const fetchCourseTree = async (): Promise<CourseTreeItem[]> => {
+export const fetchCourseTree = async (): Promise<CourseNode> => {
   // Return from cache if available
   if (courseTreeCache) {
     return courseTreeCache;
   }
-  
+
   try {
-    // Transform the JSON data to match our CourseTreeItem interface
-    const transformedData: CourseTreeItem[] = courseTreeData.map((course, index) => {
-      // Create a simple path based on course type or other attributes
-      const pathParts = [];
-      
-      if (course.semester) {
-        pathParts.push(course.semester);
-      } else {
-        pathParts.push("Unknown Semester");
-      }
-      
-      if (course.type) {
-        pathParts.push(course.type);
-      } else {
-        pathParts.push("Unknown Type");
-      }
-      
-      return {
-        id: index.toString(),
-        path: pathParts,
-        course_id: course.number,
-        course: course as Course
-      };
-    });
-    
-    // Cache the result
-    courseTreeCache = transformedData;
-    
-    return transformedData;
+    // Simply return the JSON data as is, without transforming
+    courseTreeCache = courseTreeData as CourseNode;
+    return courseTreeCache;
   } catch (error) {
-    console.error('Error loading course tree data:', error);
+    console.error("Error loading course tree data:", error);
     toast({
       title: "Error loading courses",
       description: "Could not load course data",
       variant: "destructive",
     });
-    return [];
+    return { name: "Error", children: [] };
   }
 };
 
 // Function to fetch course details from Supabase by course number
-export const fetchCourseDetails = async (courseNumber: string): Promise<Course | null> => {
+export const fetchCourseDetails = async (
+  courseNumber: string
+): Promise<Course | null> => {
   // Return from cache if available
   if (courseDetailsCache[courseNumber]) {
     return courseDetailsCache[courseNumber];
   }
-  
+
   try {
     const { data, error } = await supabase
-      .from('courses')
-      .select('*')
-      .eq('number', courseNumber)
+      .from("courses")
+      .select("*")
+      .eq("number", courseNumber)
       .single();
 
     if (error) {
-      console.error('Error fetching course details:', error);
+      console.error("Error fetching course details:", error);
       return null;
     }
 
     const course = {
       ...data,
       // Convert schedule from Json to Schedule[] if it exists
-      schedule: data.schedule ? (data.schedule as any as Schedule[]) : undefined
+      schedule: data.schedule
+        ? (data.schedule as unknown as Schedule[])
+        : undefined,
     } as Course;
-    
+
     // Cache the result
     courseDetailsCache[courseNumber] = course;
-    
+
     return course;
   } catch (error) {
-    console.error('Unexpected error fetching course details:', error);
+    console.error("Unexpected error fetching course details:", error);
     return null;
   }
 };
@@ -147,29 +130,30 @@ export const isFavorite = async (courseId: string): Promise<boolean> => {
   if (favoriteCache) {
     return favoriteCache.includes(courseId);
   }
-  
+
   try {
     const { data: session } = await supabase.auth.getSession();
-    
+
     if (!session.session?.user) {
       return false;
     }
 
     const { data, error } = await supabase
-      .from('favorites')
-      .select('id')
-      .eq('course_id', courseId)
-      .eq('user_id', session.session.user.id)
+      .from("favorites")
+      .select("id")
+      .eq("course_id", courseId)
+      .eq("user_id", session.session.user.id)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-      console.error('Error checking favorite status:', error);
+    if (error && error.code !== "PGRST116") {
+      // PGRST116 is "no rows returned"
+      console.error("Error checking favorite status:", error);
       return false;
     }
 
     return !!data;
   } catch (error) {
-    console.error('Unexpected error checking favorite status:', error);
+    console.error("Unexpected error checking favorite status:", error);
     return false;
   }
 };
@@ -178,7 +162,7 @@ export const isFavorite = async (courseId: string): Promise<boolean> => {
 export const toggleFavorite = async (courseId: string): Promise<boolean> => {
   try {
     const { data: session } = await supabase.auth.getSession();
-    
+
     if (!session.session?.user) {
       toast({
         title: "Authentication required",
@@ -189,20 +173,20 @@ export const toggleFavorite = async (courseId: string): Promise<boolean> => {
     }
 
     const userId = session.session.user.id;
-    
+
     // Check if already favorited
     const isFavorited = await isFavorite(courseId);
-    
+
     if (isFavorited) {
       // Remove favorite
       const { error } = await supabase
-        .from('favorites')
+        .from("favorites")
         .delete()
-        .eq('course_id', courseId)
-        .eq('user_id', userId);
-        
+        .eq("course_id", courseId)
+        .eq("user_id", userId);
+
       if (error) {
-        console.error('Error removing favorite:', error);
+        console.error("Error removing favorite:", error);
         toast({
           title: "Error",
           description: "Failed to remove from favorites",
@@ -210,12 +194,12 @@ export const toggleFavorite = async (courseId: string): Promise<boolean> => {
         });
         return true; // Return true because it's still favorited
       }
-      
+
       // Update cache if exists
       if (favoriteCache) {
-        favoriteCache = favoriteCache.filter(id => id !== courseId);
+        favoriteCache = favoriteCache.filter((id) => id !== courseId);
       }
-      
+
       toast({
         title: "Removed from favorites",
         description: "Course removed from your favorites",
@@ -223,15 +207,13 @@ export const toggleFavorite = async (courseId: string): Promise<boolean> => {
       return false;
     } else {
       // Add favorite
-      const { error } = await supabase
-        .from('favorites')
-        .insert({
-          course_id: courseId,
-          user_id: userId,
-        });
-        
+      const { error } = await supabase.from("favorites").insert({
+        course_id: courseId,
+        user_id: userId,
+      });
+
       if (error) {
-        console.error('Error adding favorite:', error);
+        console.error("Error adding favorite:", error);
         toast({
           title: "Error",
           description: "Failed to add to favorites",
@@ -239,12 +221,12 @@ export const toggleFavorite = async (courseId: string): Promise<boolean> => {
         });
         return false;
       }
-      
+
       // Update cache if exists
       if (favoriteCache) {
         favoriteCache.push(courseId);
       }
-      
+
       toast({
         title: "Added to favorites",
         description: "Course added to your favorites",
@@ -252,7 +234,7 @@ export const toggleFavorite = async (courseId: string): Promise<boolean> => {
       return true;
     }
   } catch (error) {
-    console.error('Unexpected error toggling favorite:', error);
+    console.error("Unexpected error toggling favorite:", error);
     return false;
   }
 };
@@ -263,46 +245,49 @@ export const fetchFavorites = async (): Promise<string[]> => {
   if (favoriteCache) {
     return favoriteCache;
   }
-  
+
   try {
     const { data: session } = await supabase.auth.getSession();
-    
+
     if (!session.session?.user) {
       return [];
     }
 
     const { data, error } = await supabase
-      .from('favorites')
-      .select('course_id')
-      .eq('user_id', session.session.user.id);
+      .from("favorites")
+      .select("course_id")
+      .eq("user_id", session.session.user.id);
 
     if (error) {
-      console.error('Error fetching favorites:', error);
+      console.error("Error fetching favorites:", error);
       return [];
     }
 
-    const favorites = data.map(item => item.course_id);
-    
+    const favorites = data.map((item) => item.course_id);
+
     // Cache the result
     favoriteCache = favorites;
-    
+
     return favorites;
   } catch (error) {
-    console.error('Unexpected error fetching favorites:', error);
+    console.error("Unexpected error fetching favorites:", error);
     return [];
   }
 };
 
 // Invalidate caches when needed
-export const invalidateCache = (type: 'all' | 'favorites' | 'course' = 'all', courseId?: string) => {
-  if (type === 'all' || type === 'favorites') {
+export const invalidateCache = (
+  type: "all" | "favorites" | "course" = "all",
+  courseId?: string
+) => {
+  if (type === "all" || type === "favorites") {
     favoriteCache = null;
   }
-  
-  if (type === 'all') {
+
+  if (type === "all") {
     courseTreeCache = null;
     courseDetailsCache = {};
-  } else if (type === 'course' && courseId) {
+  } else if (type === "course" && courseId) {
     delete courseDetailsCache[courseId];
   }
 };
