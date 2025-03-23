@@ -82,6 +82,7 @@ export function useCourseTabs() {
   return {
     openTabs,
     activeTabIndex,
+    setActiveTabIndex, // Added the missing setActiveTabIndex function here
     activeTab,
     setActiveTab,
     handleOpenCourse,
