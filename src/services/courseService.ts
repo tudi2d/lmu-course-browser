@@ -44,7 +44,8 @@ export interface CourseTreeItem {
 export interface CourseNode {
   id: string;
   name: string;
-  children?: any[];
+  course?: Course;
+  children?: CourseNode[];
   [key: string]: any;
 }
 

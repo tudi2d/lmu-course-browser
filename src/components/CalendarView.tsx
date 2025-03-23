@@ -11,11 +11,33 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useQuery } from '@tanstack/react-query';
-import { fetchCourseTree, fetchFavorites, Schedule, CourseTreeItem } from '@/services/courseService';
+import { fetchCourseTree, fetchFavorites, Schedule, CourseTreeItem, Course, CourseNode, isCourseNodeArray } from '@/services/courseService';
 import { toast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 
 type CalendarMode = 'week' | 'month';
+
+// Flatten the tree structure into a list of course items
+const flattenCourseTree = (node: CourseNode): CourseTreeItem[] => {
+  const courses: CourseTreeItem[] = [];
+  
+  // Process the current node
+  if (node.course) {
+    courses.push({
+      course: node.course as Course,
+      children: []
+    });
+  }
+  
+  // Process children if they exist
+  if (node.children && Array.isArray(node.children)) {
+    for (const child of node.children) {
+      courses.push(...flattenCourseTree(child));
+    }
+  }
+  
+  return courses;
+};
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const TIME_SLOTS = Array.from({ length: 14 }, (_, i) => i + 8); // 8:00 to 21:00
@@ -27,7 +49,7 @@ const CalendarView: React.FC = () => {
   const [selectedFaculties, setSelectedFaculties] = useState<string[]>([]);
   
   // Fetch course data
-  const { data: courseTreeItems = [], isLoading: isLoadingCourses } = useQuery({
+  const { data: courseTree, isLoading: isLoadingCourses } = useQuery({
     queryKey: ['courseTree'],
     queryFn: fetchCourseTree
   });
@@ -37,6 +59,12 @@ const CalendarView: React.FC = () => {
     queryKey: ['favorites'],
     queryFn: fetchFavorites
   });
+
+  // Flatten the course tree to get a list of all courses
+  const courseTreeItems = useMemo(() => {
+    if (!courseTree) return [];
+    return flattenCourseTree(courseTree);
+  }, [courseTree]);
 
   // Extract all available faculties from courses
   const allFaculties = useMemo(() => {
