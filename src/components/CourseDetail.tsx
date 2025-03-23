@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { ExternalLink, Calendar, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,26 +17,29 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "@/components/ui/use-toast";
-import {
-  Course,
-  isFavorite,
-  toggleFavorite,
-} from "@/services/courseService";
+import { Course } from "@/services/courseService";
+import { toggleFavorite } from "@/services/favoriteService";
 
 interface CourseDetailProps {
   course: Course | null;
   path?: string[];
+  favorites: string[];
+  onToggleFavorite?: (courseId: string, isFavorited: boolean) => void;
 }
 
-const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
+const CourseDetail: React.FC<CourseDetailProps> = ({ 
+  course, 
+  path,
+  favorites = [],
+  onToggleFavorite
+}) => {
   const [courseData, setCourseData] = useState<Course | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Reset course data and favorite state when course changes
+    // Reset course data when course changes
     setCourseData(null);
-    setIsFavorited(false);
 
     if (course) {
       console.log("CourseDetail received course:", course);
@@ -48,10 +50,12 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
         checkFavoriteStatus(course.id);
       }
     }
-  }, [course]);
+  }, [course, favorites]);
 
-  const checkFavoriteStatus = async (courseId: string) => {
-    const status = await isFavorite(courseId);
+  // Check if course is in favorites
+  const checkFavoriteStatus = (courseId: string) => {
+    const status = favorites.includes(courseId);
+    console.log(`Course ${courseId} favorite status:`, status);
     setIsFavorited(status);
   };
 
@@ -59,24 +63,42 @@ const CourseDetail: React.FC<CourseDetailProps> = ({ course, path }) => {
     if (!courseData?.id) return;
 
     setLoading(true);
-    const success = await toggleFavorite(courseData.id, isFavorited);
-    if (success) {
-      setIsFavorited(!isFavorited);
-      toast({
-        title: isFavorited ? "Removed from favorites" : "Added to favorites",
-        description: isFavorited 
-          ? "Course has been removed from your favorites" 
-          : "Course has been added to your favorites",
-        variant: "default",
-      });
-    } else {
+    
+    try {
+      // First try the callback if provided
+      if (onToggleFavorite) {
+        await onToggleFavorite(courseData.id, isFavorited);
+        setIsFavorited(!isFavorited);
+      } else {
+        // Fallback to direct toggle
+        const success = await toggleFavorite(courseData.id, isFavorited);
+        if (success) {
+          setIsFavorited(!isFavorited);
+          toast({
+            title: isFavorited ? "Removed from favorites" : "Added to favorites",
+            description: isFavorited 
+              ? "Course has been removed from your favorites" 
+              : "Course has been added to your favorites",
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Action failed",
+            description: "Could not update favorites. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
       toast({
         title: "Action failed",
-        description: "Could not update favorites. Please try again.",
+        description: "An error occurred while updating favorites.",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   if (!courseData) {

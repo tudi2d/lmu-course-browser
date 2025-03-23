@@ -9,11 +9,14 @@ export function useFilteredTree(
   favorites: string[]
 ) {
   const filteredTreeData = useMemo(() => {
-    if (!searchQuery && activeTab === "all-courses") {
-      return treeData;
-    }
-
     if (!treeData) return null;
+    
+    console.log("Filtering tree with:", {
+      searchQuery,
+      activeTab,
+      favoritesCount: favorites.length,
+      favorites: favorites
+    });
 
     const nodeMatchesSearch = (node: CourseNode): boolean => {
       if (!searchQuery) return true;
@@ -36,12 +39,15 @@ export function useFilteredTree(
     };
 
     const nodeMatchesFavorites = (node: CourseNode): boolean => {
+      // If not filtering by favorites, return true
       if (activeTab !== "favorites") return true;
 
+      // If this node is a course and is in favorites, return true
       if (node.value && favorites.includes(node.value)) {
         return true;
       }
 
+      // If any children match favorites, return true
       if (node.children) {
         for (const child of node.children) {
           if (nodeMatchesFavorites(child)) {
@@ -54,23 +60,33 @@ export function useFilteredTree(
     };
 
     const filterNode = (node: CourseNode): CourseNode | null => {
-      // For favorites tab without search, only check favorites match
-      if (activeTab === "favorites" && !searchQuery) {
+      // For favorites tab, only check favorites match if we have favorites
+      if (activeTab === "favorites") {
+        if (favorites.length === 0) {
+          // If we're on favorites tab but have no favorites, return empty tree
+          return {
+            id: node.id,
+            name: node.name,
+            value: node.value,
+            children: [],
+          };
+        }
+        
         if (!nodeMatchesFavorites(node)) {
           return null;
         }
-      } 
-      // For combined favorites and search
-      else if (activeTab === "favorites" && searchQuery) {
-        if (!nodeMatchesFavorites(node) || !nodeMatchesSearch(node)) {
+        
+        // If we have search query, also check search match
+        if (searchQuery && !nodeMatchesSearch(node)) {
           return null;
         }
-      }
+      } 
       // For all-courses tab with search
       else if (searchQuery && !nodeMatchesSearch(node)) {
         return null;
       }
 
+      // Create a new node with filtered children
       const filteredNode: CourseNode = {
         id: node.id,
         name: node.name,
@@ -78,6 +94,7 @@ export function useFilteredTree(
         children: [],
       };
 
+      // Filter children
       if (node.children) {
         node.children.forEach((child) => {
           const filteredChild = filterNode(child);

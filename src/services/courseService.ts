@@ -13,7 +13,9 @@ export {
   addFavorite, 
   removeFavorite, 
   toggleFavorite,
-  syncFavoritesOnLogin 
+  syncFavoritesOnLogin,
+  getLocalFavorites,
+  saveLocalFavorites
 } from './favoriteService';
 
 export const fetchCourseTree = async (): Promise<CourseNode> => {

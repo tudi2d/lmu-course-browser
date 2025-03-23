@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCourseTree } from "@/hooks/use-course-tree";
@@ -9,17 +9,25 @@ import { useCourseTabs } from "@/hooks/use-course-tabs";
 import { useFilteredTree } from "@/hooks/use-filtered-tree";
 import CourseSidebar from "./CourseSidebar";
 import CourseTabsView from "./CourseTabsView";
+import { toast } from "@/components/ui/use-toast";
 
 const TreeBrowser: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isMobile = useIsMobile();
   
   // Use custom hooks to manage different aspects of state
-  const { treeData, loading } = useCourseTree();
-  const { favorites, user } = useCourseFavorites();
+  const { treeData, loading: treeLoading } = useCourseTree();
+  const { 
+    favorites, 
+    loading: favoritesLoading, 
+    addFavorite, 
+    removeFavorite,
+    isFavorite, 
+    user 
+  } = useCourseFavorites();
+  
   const { 
     searchQuery, 
-    debouncedSearchQuery, 
     expandedNodes, 
     setSearchQuery, 
     handleNodeToggle, 
@@ -36,8 +44,27 @@ const TreeBrowser: React.FC = () => {
     setActiveTabIndex 
   } = useCourseTabs();
   
+  // Handle toggling favorite status
+  const handleToggleFavorite = useCallback(async (courseId: string, isFavorited: boolean) => {
+    // First find the course name from open tabs or tree data
+    let courseName = "";
+    const openTab = openTabs.find(tab => tab.course_id === courseId);
+    if (openTab) {
+      courseName = openTab.name;
+    }
+    
+    if (isFavorited) {
+      await removeFavorite(courseId, courseName);
+    } else {
+      await addFavorite(courseId, courseName);
+    }
+  }, [openTabs, addFavorite, removeFavorite]);
+  
   // Get filtered tree data
   const filteredTreeData = useFilteredTree(treeData, searchQuery, activeTab, favorites);
+
+  // Loading state
+  const loading = treeLoading || favoritesLoading;
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
@@ -95,6 +122,7 @@ const TreeBrowser: React.FC = () => {
           setActiveTabIndex={setActiveTabIndex}
           handleCloseTab={handleCloseTab}
           favorites={favorites}
+          onToggleFavorite={handleToggleFavorite}
           isMobile={isMobile}
         />
       </div>
