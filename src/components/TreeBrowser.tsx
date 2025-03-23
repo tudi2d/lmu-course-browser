@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from "react";
 import TreeNode from "./TreeNode";
 import CourseDetail from "./CourseDetail";
@@ -77,8 +78,19 @@ const TreeBrowser: React.FC = () => {
       const newUser = session?.user || null;
       setUser(newUser);
       
+      // If a user just logged in, sync local favorites to the database
       if (newUser && !user) {
-        syncFavoritesOnLogin(newUser.id);
+        syncFavoritesOnLogin(newUser.id)
+          .then(() => {
+            // After syncing, fetch the combined favorites
+            return fetchFavorites();
+          })
+          .then(updatedFavorites => {
+            setFavorites(updatedFavorites);
+          })
+          .catch(error => {
+            console.error("Error syncing favorites:", error);
+          });
       }
     });
 
@@ -86,7 +98,17 @@ const TreeBrowser: React.FC = () => {
       (event, session) => {
         const newUser = session?.user || null;
         if (event === 'SIGNED_IN' && newUser && !user) {
-          syncFavoritesOnLogin(newUser.id);
+          syncFavoritesOnLogin(newUser.id)
+            .then(() => {
+              // After syncing, fetch the combined favorites
+              return fetchFavorites();
+            })
+            .then(updatedFavorites => {
+              setFavorites(updatedFavorites);
+            })
+            .catch(error => {
+              console.error("Error syncing favorites:", error);
+            });
         }
         setUser(newUser);
       }
@@ -312,6 +334,7 @@ const TreeBrowser: React.FC = () => {
   ) => {
     if (!node) return null;
 
+    // Skip nodes that aren't courses and don't have children
     if (!node.value && (!node.children || node.children.length === 0)) {
       return null;
     }
