@@ -1,17 +1,10 @@
 import { CourseNode } from "@/services/courseService";
-import { isNodeFavorite } from "@/utils/tree-utils";
 
 export function useFavoritesFilter() {
-  // For favorites tab, filter to only keep nodes that are in favorites or have descendants in favorites
-  const filterForFavorites = (node: CourseNode, favorites: string[]): CourseNode | null => {
-    // Direct check if this node is a favorite course
-    const isInFavorites = isNodeFavorite(node, favorites);
-    
-    if (isInFavorites) {
-      console.log("Found favorite node:", node.name, node.value);
-    }
-
-    // New node with same properties but empty children
+  // Simplified favorites filtering that preserves the entire tree structure
+  // but only includes nodes that are favorites or lead to favorites
+  const filterForFavorites = (node: CourseNode, favorites: string[]): CourseNode => {
+    // Create a new node to avoid mutating the original
     const filteredNode: CourseNode = {
       id: node.id,
       name: node.name,
@@ -19,23 +12,44 @@ export function useFavoritesFilter() {
       children: [],
     };
 
-    // Process children recursively
+    // Check if this is a course node that's in favorites
+    const isInFavorites = node.value && favorites.includes(node.value);
+    
+    // Process children if they exist
     if (node.children && node.children.length > 0) {
-      for (const child of node.children) {
+      // Keep track if any children contain favorites
+      let hasChildWithFavorite = false;
+      
+      // Process each child
+      node.children.forEach(child => {
         const filteredChild = filterForFavorites(child, favorites);
-        if (filteredChild) {
+        
+        // If the child has favorites or descendants with favorites, keep it
+        if (filteredChild.children && filteredChild.children.length > 0 || 
+            (filteredChild.value && favorites.includes(filteredChild.value))) {
+          hasChildWithFavorite = true;
           if (!filteredNode.children) filteredNode.children = [];
           filteredNode.children.push(filteredChild);
         }
+      });
+      
+      // If this node isn't a favorite but has children with favorites, include it
+      if (hasChildWithFavorite || isInFavorites) {
+        return filteredNode;
       }
-    }
-
-    // Return this node if it's a favorite OR has children with favorites
-    if (isInFavorites || (filteredNode.children && filteredNode.children.length > 0)) {
+    } else if (isInFavorites) {
+      // This is a leaf node and it's a favorite
       return filteredNode;
     }
-
-    return null;
+    
+    // If we reach here, this node doesn't have favorites and none of its children do
+    if (isInFavorites) {
+      return filteredNode;
+    }
+    
+    // Empty children array for non-favorite nodes with no favorite descendants
+    filteredNode.children = [];
+    return filteredNode;
   };
 
   return { filterForFavorites };

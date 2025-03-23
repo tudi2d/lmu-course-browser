@@ -1,3 +1,4 @@
+
 import { useMemo } from "react";
 import { CourseNode } from "@/services/courseService";
 import { cloneTree } from "@/utils/tree-utils";
@@ -23,74 +24,47 @@ export function useFilteredTree(
       favorites: favorites
     });
 
+    // Start with a clone of the original tree
     let result = cloneTree(treeData);
 
-    // If on favorites tab
+    // Apply filters based on the active tab
     if (activeTab === "favorites") {
+      // Filter for favorites first
       if (favorites.length === 0) {
+        // If no favorites, return empty tree
         console.log("No favorites - returning empty tree");
-        // Return empty tree structure
         return {
-          id: treeData.id,
-          name: treeData.name,
-          value: treeData.value,
-          children: [],
+          ...result,
+          children: []
         };
       }
       
       console.log("Filtering for favorites:", favorites);
-      const favoritesResult = filterForFavorites(result, favorites);
+      // Apply favorites filter
+      result = filterForFavorites(result, favorites);
       
-      // CRITICAL FIX: Make sure we're not losing the root node structure
-      if (favoritesResult) {
-        result = favoritesResult;
-      } else {
-        // If nothing matched, return empty children but keep root structure
-        result = {
-          id: treeData.id,
-          name: treeData.name,
-          value: treeData.value,
-          children: [],
-        };
-      }
-      
-      // If there's also a search query, filter the favorites result
-      if (searchQuery && result) {
+      // Then apply search filter if needed
+      if (searchQuery) {
         console.log("Additionally filtering favorites by search");
         const searchResult = filterForSearch(result, searchQuery);
         if (searchResult) {
           result = searchResult;
-        } else {
-          // If nothing matched the search, return empty children
-          result = {
-            id: treeData.id,
-            name: treeData.name,
-            value: treeData.value,
-            children: [],
-          };
         }
       }
-    }
-    // If on all courses tab with search
+    } 
+    // All courses tab with search
     else if (searchQuery) {
       console.log("Filtering for search");
       const searchResult = filterForSearch(result, searchQuery);
       if (searchResult) {
         result = searchResult;
-      } else {
-        // If nothing matched the search, return empty children
-        result = {
-          id: treeData.id,
-          name: treeData.name,
-          value: treeData.value,
-          children: [],
-        };
       }
     }
 
     console.log("Filtering result:", {
       hasChildren: result?.children?.length > 0,
-      childrenCount: result?.children?.length || 0
+      childrenCount: result?.children?.length || 0,
+      result: result
     });
     
     return result;

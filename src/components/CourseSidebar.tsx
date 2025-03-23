@@ -39,9 +39,6 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   handleOpenCourse,
   user,
 }) => {
-  // State to check if we have favorited courses in structure
-  const [hasFavoritesInTree, setHasFavoritesInTree] = useState(false);
-  
   // Debug favorites data directly
   useEffect(() => {
     if (activeTab === "favorites") {
@@ -50,36 +47,29 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
     }
   }, [activeTab, favorites, filteredTreeData]);
   
-  // Check if we have any favorites in the tree structure
-  useEffect(() => {
-    if (activeTab === "favorites" && filteredTreeData) {
-      // CRITICAL FIX: Properly check if any courses are found after filtering
-      let hasVisibleNodes = false;
-      
-      const checkForVisibleCourses = (node: CourseNode): boolean => {
-        // Direct check if this is a course and in favorites
-        if (node.value && favorites.includes(node.value)) {
+  // Helper function to check if we have any courses in the tree
+  const hasCoursesInTree = (node: CourseNode | null): boolean => {
+    if (!node) return false;
+    
+    // If this node is a course in favorites, return true
+    if (node.value && favorites.includes(node.value)) {
+      return true;
+    }
+    
+    // Check children recursively
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        if (hasCoursesInTree(child)) {
           return true;
         }
-        
-        // Check children recursively
-        if (node.children && node.children.length > 0) {
-          for (const child of node.children) {
-            if (checkForVisibleCourses(child)) {
-              return true;
-            }
-          }
-        }
-        
-        return false;
-      };
-      
-      hasVisibleNodes = checkForVisibleCourses(filteredTreeData);
-      
-      console.log("Favorites tab has visible nodes:", hasVisibleNodes);
-      setHasFavoritesInTree(hasVisibleNodes);
+      }
     }
-  }, [activeTab, filteredTreeData, favorites]);
+    
+    return false;
+  };
+
+  // Check if any favorites are in the filtered tree
+  const hasFavoritesInTree = filteredTreeData ? hasCoursesInTree(filteredTreeData) : false;
 
   return (
     <div className="flex flex-col h-full w-full">

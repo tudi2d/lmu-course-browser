@@ -31,29 +31,24 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
     return null;
   }
 
-  // Skip nodes that aren't courses and don't have children
-  if (!node.value && (!node.children || node.children.length === 0)) {
-    return null;
-  }
-
   const nodePath = [...parentPath, node.name].join("/");
-  const isExpanded =
-    expandedNodes.has(node.name) || expandedNodes.has(nodePath);
+  const isExpanded = expandedNodes.has(node.name) || expandedNodes.has(nodePath);
   const hasChildren = node.children && node.children.length > 0;
   const isCourse = node.value !== undefined;
-
-  // In the favorites tab, we automatically expand all nodes
-  // Fix the type issue by ensuring shouldAutoExpand is always a boolean
-  const shouldAutoExpand = Boolean(
-    searchQuery || (hasChildren && node.children?.some(child => 
-      child.value && favorites.includes(child.value)))
-  );
-  
   const isFavorite = isCourse && node.value && favorites.includes(node.value);
 
-  // Debug node rendering in favorites mode
+  // In favorites tab, we want to auto-expand nodes that lead to favorites
+  const shouldAutoExpand = Boolean(
+    searchQuery || 
+    (hasChildren && node.children?.some(child => 
+      child.value && favorites.includes(child.value) || 
+      (child.children && child.children.length > 0)
+    ))
+  );
+  
+  // Debug information
   if (isFavorite) {
-    console.log("Rendering favorite node:", node.name, node.value);
+    console.log("Rendering favorite course:", node.name, node.value);
   }
 
   return (
@@ -63,9 +58,7 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
         level={level}
         hasChildren={hasChildren}
         isExpanded={isExpanded || shouldAutoExpand}
-        isActive={
-          isCourse && openTabs.some((tab) => tab.course_id === node.value)
-        }
+        isActive={isCourse && openTabs.some((tab) => tab.course_id === node.value)}
         isHighlighted={
           searchQuery &&
           node.name.toLowerCase().includes(searchQuery.toLowerCase())
