@@ -1,11 +1,10 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { 
   fetchFavorites, 
   syncFavoritesOnLogin,
-  addFavorite,
-  removeFavorite
-} from "@/services/favoriteService";
+  addFavorite as addFavoriteService,
+  removeFavorite as removeFavoriteService
+} from "@/services/favorites/favoriteService";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -96,7 +95,7 @@ export function useCourseFavorites() {
 
   // Function to add a favorite with state update
   const addFavoriteWithStateUpdate = useCallback(async (courseId: string, courseName: string) => {
-    const success = await addFavorite(courseId);
+    const success = await addFavoriteService(courseId);
     if (success) {
       setFavorites(prev => {
         if (!prev.includes(courseId)) {
@@ -122,7 +121,7 @@ export function useCourseFavorites() {
 
   // Function to remove a favorite with state update
   const removeFavoriteWithStateUpdate = useCallback(async (courseId: string, courseName: string) => {
-    const success = await removeFavorite(courseId);
+    const success = await removeFavoriteService(courseId);
     if (success) {
       setFavorites(prev => prev.filter(id => id !== courseId));
       toast({

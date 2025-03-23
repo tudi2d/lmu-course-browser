@@ -1,4 +1,3 @@
-
 import courseTreeData from '../data/course_tree.json';
 import { supabase } from '@/integrations/supabase/client';
 import { CourseNode, Course } from './types';
@@ -16,7 +15,7 @@ export {
   syncFavoritesOnLogin,
   getLocalFavorites,
   saveLocalFavorites
-} from './favoriteService';
+} from './favorites/favoriteService';
 
 export const fetchCourseTree = async (): Promise<CourseNode> => {
   // Return local data for now, later can be replaced with actual API call
