@@ -66,12 +66,14 @@ export const syncFavoritesOnLogin = async (userId: string): Promise<void> => {
 
 export const fetchFavorites = async (): Promise<string[]> => {
   const { data: { user } } = await supabase.auth.getUser();
+  const localFavorites = getLocalFavorites();
   
   if (!user) {
     // Return local favorites for non-authenticated users
-    return getLocalFavorites();
+    return localFavorites;
   }
   
+  // For authenticated users, get favorites from database
   const { data, error } = await supabase
     .from('favorites')
     .select('course_id')
@@ -79,9 +81,10 @@ export const fetchFavorites = async (): Promise<string[]> => {
     
   if (error) {
     console.error('Error fetching favorites:', error);
-    return getLocalFavorites(); // Fallback to local if database fetch fails
+    return localFavorites; // Fallback to local if database fetch fails
   }
   
+  // Return database favorites for authenticated users
   return data?.map(fav => fav.course_id) || [];
 };
 

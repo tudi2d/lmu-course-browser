@@ -123,6 +123,7 @@ const TreeBrowser: React.FC = () => {
     const loadFavorites = async () => {
       try {
         const userFavorites = await fetchFavorites();
+        console.log("Loaded favorites:", userFavorites);
         setFavorites(userFavorites);
       } catch (error) {
         console.error("Error loading favorites:", error);
@@ -284,7 +285,20 @@ const TreeBrowser: React.FC = () => {
     };
 
     const filterNode = (node: CourseNode): CourseNode | null => {
-      if (!nodeMatchesSearch(node) || !nodeMatchesFavorites(node)) {
+      // For favorites tab without search, only check favorites match
+      if (activeTab === "favorites" && !searchQuery) {
+        if (!nodeMatchesFavorites(node)) {
+          return null;
+        }
+      } 
+      // For combined favorites and search
+      else if (activeTab === "favorites" && searchQuery) {
+        if (!nodeMatchesFavorites(node) || !nodeMatchesSearch(node)) {
+          return null;
+        }
+      }
+      // For all-courses tab with search
+      else if (searchQuery && !nodeMatchesSearch(node)) {
         return null;
       }
 
@@ -305,6 +319,7 @@ const TreeBrowser: React.FC = () => {
         });
       }
 
+      // Don't return nodes that have no value (aren't courses) and have no children
       if (!filteredNode.value && (!filteredNode.children || filteredNode.children.length === 0)) {
         return null;
       }
