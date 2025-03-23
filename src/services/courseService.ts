@@ -1,6 +1,7 @@
 
 import courseTreeData from '../data/course_tree.json';
 import { supabase } from '@/integrations/supabase/client';
+import { Json } from '@/integrations/supabase/types';
 
 // Define types needed by components
 export interface Schedule {
@@ -60,6 +61,50 @@ export const fetchCourseTree = async (): Promise<CourseNode> => {
   return courseTreeData as unknown as CourseNode;
 };
 
+// Helper function to safely parse schedule data
+const parseScheduleData = (scheduleData: Json | null): Schedule[] => {
+  if (!scheduleData) return [];
+  
+  try {
+    // Handle different possible formats of the schedule data
+    if (Array.isArray(scheduleData)) {
+      // Validate that each item has the required fields for a Schedule
+      return scheduleData.map(item => {
+        return {
+          day: item.day || '',
+          time_start: item.time_start || '',
+          time_end: item.time_end || '',
+          rhythm: item.rhythm || '',
+          first_date: item.first_date || '',
+          last_date: item.last_date || '',
+          room: item.room || '',
+          room_link: item.room_link || '',
+        } as Schedule;
+      });
+    } else if (typeof scheduleData === 'string') {
+      // Parse string JSON
+      const parsed = JSON.parse(scheduleData);
+      return Array.isArray(parsed) ? parseScheduleData(parsed) : [parseScheduleData(parsed)[0]];
+    } else if (scheduleData && typeof scheduleData === 'object') {
+      // Single schedule object
+      return [{
+        day: scheduleData.day || '',
+        time_start: scheduleData.time_start || '',
+        time_end: scheduleData.time_end || '',
+        rhythm: scheduleData.rhythm || '',
+        first_date: scheduleData.first_date || '',
+        last_date: scheduleData.last_date || '',
+        room: scheduleData.room || '',
+        room_link: scheduleData.room_link || '',
+      } as Schedule];
+    }
+  } catch (e) {
+    console.error('Error parsing schedule data:', e);
+  }
+  
+  return [];
+};
+
 export const fetchCourseDetails = async (courseId: string): Promise<Course | null> => {
   // Fetch actual course data from Supabase database
   const { data, error } = await supabase
@@ -73,24 +118,32 @@ export const fetchCourseDetails = async (courseId: string): Promise<Course | nul
     return null;
   }
   
-  // Parse schedule data if it exists
-  if (data && data.schedule) {
-    try {
-      // Ensure schedule is treated as an array
-      const scheduleData = Array.isArray(data.schedule) 
-        ? data.schedule 
-        : (typeof data.schedule === 'string' 
-            ? JSON.parse(data.schedule) 
-            : [data.schedule]);
-            
-      data.schedule = scheduleData;
-    } catch (e) {
-      console.error('Error parsing schedule data:', e);
-      data.schedule = [];
-    }
-  }
+  if (!data) return null;
   
-  return data as Course;
+  // Transform the data to match our Course interface
+  const courseData: Course = {
+    id: data.id,
+    name: data.name,
+    number: data.number || undefined,
+    type: data.type || undefined,
+    semester: data.semester || undefined,
+    professor: data.professor || undefined,
+    language: data.language || undefined,
+    sws: data.sws !== null ? Number(data.sws) : undefined,
+    max_participants: data.max_participants !== null ? Number(data.max_participants) : undefined,
+    description: data.description || undefined,
+    literature: data.literature || undefined,
+    requirements: data.requirements || undefined,
+    target_group: data.target_group || undefined,
+    registration_info: data.registration_info || undefined,
+    evaluation_method: data.evaluation_method || undefined,
+    url: data.url || undefined,
+    faculties: data.faculties || undefined,
+    // Parse schedule data properly
+    schedule: parseScheduleData(data.schedule)
+  };
+  
+  return courseData;
 };
 
 export const fetchFavorites = async (): Promise<string[]> => {
