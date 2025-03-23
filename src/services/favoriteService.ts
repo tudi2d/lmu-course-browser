@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Local storage key for favorites
@@ -48,10 +47,28 @@ export const syncFavoritesOnLogin = async (userId: string): Promise<void> => {
   
   if (newFavorites.length === 0) return;
   
-  // Prepare data for insertion
+  // Fetch course names for the new favorites
+  const { data: courseNames, error: courseError } = await supabase
+    .from('courses')
+    .select('id, name')
+    .in('id', newFavorites);
+    
+  if (courseError) {
+    console.error('Error fetching course names:', courseError);
+    return;
+  }
+  
+  // Create a mapping of course IDs to names
+  const courseNameMap = (courseNames || []).reduce((map: Record<string, string>, course) => {
+    map[course.id] = course.name;
+    return map;
+  }, {});
+  
+  // Prepare data for insertion with course names
   const favoritesToInsert = newFavorites.map(courseId => ({
     user_id: userId,
-    course_id: courseId
+    course_id: courseId,
+    name: courseNameMap[courseId] || null
   }));
   
   // Insert new favorites into the database
@@ -119,7 +136,7 @@ export const isFavorite = async (courseId: string): Promise<boolean> => {
   return favorites.includes(courseId);
 };
 
-export const addFavorite = async (courseId: string): Promise<boolean> => {
+export const addFavorite = async (courseId: string, courseName: string = ''): Promise<boolean> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
@@ -134,10 +151,14 @@ export const addFavorite = async (courseId: string): Promise<boolean> => {
       return true;
     }
     
-    // For authenticated users, save to database
+    // For authenticated users, save to database with course name
     const { error } = await supabase
       .from('favorites')
-      .insert({ user_id: user.id, course_id: courseId });
+      .insert({ 
+        user_id: user.id, 
+        course_id: courseId,
+        name: courseName 
+      });
       
     if (error) {
       console.error('Error adding favorite to database:', error);
@@ -150,7 +171,7 @@ export const addFavorite = async (courseId: string): Promise<boolean> => {
       return false;
     }
     
-    console.log('Added to DB favorites:', courseId);
+    console.log('Added to DB favorites:', courseId, 'with name:', courseName);
     return true;
   } catch (error) {
     console.error('Error in addFavorite:', error);
@@ -195,11 +216,11 @@ export const removeFavorite = async (courseId: string): Promise<boolean> => {
   }
 };
 
-export const toggleFavorite = async (courseId: string, isFavorited: boolean): Promise<boolean> => {
-  console.log('Toggling favorite:', courseId, 'currently favorited:', isFavorited);
+export const toggleFavorite = async (courseId: string, isFavorited: boolean, courseName: string = ''): Promise<boolean> => {
+  console.log('Toggling favorite:', courseId, 'currently favorited:', isFavorited, 'name:', courseName);
   if (isFavorited) {
     return removeFavorite(courseId);
   } else {
-    return addFavorite(courseId);
+    return addFavorite(courseId, courseName);
   }
 };

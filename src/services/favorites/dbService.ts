@@ -24,15 +24,21 @@ export const fetchDbFavorites = async (userId: string): Promise<string[]> => {
  * Add a favorite to the database
  * @param userId The user ID
  * @param courseId The course ID to add
+ * @param courseName The course name (optional)
  * @returns Success status
  */
 export const addDbFavorite = async (
   userId: string, 
-  courseId: string
+  courseId: string,
+  courseName: string = ''
 ): Promise<boolean> => {
   const { error } = await supabase
     .from('favorites')
-    .insert({ user_id: userId, course_id: courseId });
+    .insert({ 
+      user_id: userId, 
+      course_id: courseId,
+      name: courseName || null
+    });
     
   if (error) {
     console.error('Error adding favorite to database:', error);
@@ -70,10 +76,12 @@ export const removeDbFavorite = async (
  * Synchronize local favorites with the database
  * @param userId The user ID
  * @param localFavorites Array of local course IDs
+ * @param courseNames Map of course IDs to names (optional)
  */
 export const syncFavoritesToDb = async (
   userId: string, 
-  localFavorites: string[]
+  localFavorites: string[],
+  courseNames: Record<string, string> = {}
 ): Promise<void> => {
   // Get existing favorites from the database
   const dbFavorites = await fetchDbFavorites(userId);
@@ -88,7 +96,8 @@ export const syncFavoritesToDb = async (
   // Prepare data for insertion
   const favoritesToInsert = newFavorites.map(courseId => ({
     user_id: userId,
-    course_id: courseId
+    course_id: courseId,
+    name: courseNames[courseId] || null
   }));
   
   // Insert new favorites into the database

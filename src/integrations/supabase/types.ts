@@ -139,18 +139,21 @@ export type Database = {
           course_id: string | null
           created_at: string | null
           id: string
+          name: string | null
           user_id: string | null
         }
         Insert: {
           course_id?: string | null
           created_at?: string | null
           id?: string
+          name?: string | null
           user_id?: string | null
         }
         Update: {
           course_id?: string | null
           created_at?: string | null
           id?: string
+          name?: string | null
           user_id?: string | null
         }
         Relationships: [

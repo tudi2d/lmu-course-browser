@@ -13,18 +13,15 @@ export function useCourseFavorites() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Handle user authentication and favorite syncing
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log("Auth session check:", session ? "User logged in" : "No user");
       const newUser = session?.user || null;
       setUser(newUser);
       
-      // If a user just logged in, sync local favorites to the database
       if (newUser && !user) {
         syncFavoritesOnLogin(newUser.id)
           .then(() => {
-            // After syncing, fetch the combined favorites
             return fetchFavorites();
           })
           .then(updatedFavorites => {
@@ -44,7 +41,6 @@ export function useCourseFavorites() {
         if (event === 'SIGNED_IN' && newUser && !user) {
           syncFavoritesOnLogin(newUser.id)
             .then(() => {
-              // After syncing, fetch the combined favorites
               return fetchFavorites();
             })
             .then(updatedFavorites => {
@@ -55,7 +51,6 @@ export function useCourseFavorites() {
               console.error("Error syncing favorites:", error);
             });
         } else if (event === 'SIGNED_OUT') {
-          // When signing out, reload favorites from local storage
           fetchFavorites().then(localFavorites => {
             console.log("After sign-out, local favorites:", localFavorites);
             setFavorites(localFavorites);
@@ -70,7 +65,6 @@ export function useCourseFavorites() {
     };
   }, [user]);
 
-  // Load favorites
   useEffect(() => {
     const loadFavorites = async () => {
       setLoading(true);
@@ -93,9 +87,8 @@ export function useCourseFavorites() {
     loadFavorites();
   }, []);
 
-  // Function to add a favorite with state update
   const addFavoriteWithStateUpdate = useCallback(async (courseId: string, courseName: string) => {
-    const success = await addFavoriteService(courseId);
+    const success = await addFavoriteService(courseId, courseName);
     if (success) {
       setFavorites(prev => {
         if (!prev.includes(courseId)) {
@@ -119,7 +112,6 @@ export function useCourseFavorites() {
     }
   }, []);
 
-  // Function to remove a favorite with state update
   const removeFavoriteWithStateUpdate = useCallback(async (courseId: string, courseName: string) => {
     const success = await removeFavoriteService(courseId);
     if (success) {
