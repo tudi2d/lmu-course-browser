@@ -2,9 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import TreeNode from './TreeNode';
 import CourseDetail from './CourseDetail';
-import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Search, Calendar as CalendarIcon } from 'lucide-react';
 import { fetchCourseTree, CourseTreeItem } from '@/services/courseService';
 import { toast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
 
 interface TreeNode {
   name: string;
@@ -170,6 +171,16 @@ const TreeBrowser: React.FC = () => {
                 className="w-full bg-muted/20 border-0 rounded-sm pl-9 pr-4 py-2 text-sm focus:ring-1 focus:ring-tree-accent transition-shadow"
               />
             </div>
+          </div>
+          
+          {/* Calendar view link */}
+          <div className="p-2 border-b border-muted">
+            <Button variant="outline" size="sm" className="w-full justify-start" asChild>
+              <a href="/calendar">
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Calendar View
+              </a>
+            </Button>
           </div>
           
           {/* Tree navigation */}
