@@ -7,6 +7,8 @@ import {
   Search,
   Calendar as CalendarIcon,
   X,
+  User,
+  LogOut,
 } from "lucide-react";
 import {
   fetchCourseTree,
@@ -14,6 +16,7 @@ import {
   fetchFavorites,
   CourseNode,
 } from "@/services/courseService";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +34,24 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Input } from "@/components/ui/input";
 import CalendarModal from "./CalendarModal";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface CourseTab {
   course_id: string;
@@ -48,6 +69,13 @@ const TreeBrowser: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all-courses");
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [user, setUser] = useState<any>(null);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
 
   const isMobile = useIsMobile();
 
@@ -57,17 +85,6 @@ const TreeBrowser: React.FC = () => {
       try {
         const courseTreeData = await fetchCourseTree();
         setTreeData(courseTreeData);
-
-        // Expand first level nodes by default
-        if (courseTreeData && courseTreeData.children) {
-          const firstLevelNodes = new Set<string>();
-          courseTreeData.children.forEach((child) => {
-            if (child.name) {
-              firstLevelNodes.add(child.name);
-            }
-          });
-          setExpandedNodes(firstLevelNodes);
-        }
       } catch (error) {
         console.error("Error loading course data:", error);
         toast({
@@ -84,17 +101,91 @@ const TreeBrowser: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+        
+        if (event === 'SIGNED_IN') {
+          toast({
+            title: "Welcome back!",
+            description: "You have successfully signed in.",
+          });
+        }
+        
+        if (event === 'SIGNED_OUT') {
+          toast({
+            title: "Signed out",
+            description: "You have been signed out.",
+          });
+        }
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
     const loadFavorites = async () => {
-      try {
-        const userFavorites = await fetchFavorites();
-        setFavorites(userFavorites);
-      } catch (error) {
-        console.error("Error loading favorites:", error);
+      if (user) {
+        try {
+          const userFavorites = await fetchFavorites();
+          setFavorites(userFavorites);
+        } catch (error) {
+          console.error("Error loading favorites:", error);
+        }
+      } else {
+        setFavorites([]);
       }
     };
 
     loadFavorites();
-  }, []);
+  }, [user]);
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    setAuthError("");
+    
+    try {
+      if (isSignUp) {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Account created",
+          description: "Please check your email to verify your account.",
+        });
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        
+        if (error) throw error;
+      }
+      
+      setAuthDialogOpen(false);
+    } catch (error: any) {
+      console.error("Authentication error:", error);
+      setAuthError(error.message || "Authentication failed");
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+  };
 
   const loadCourseDetails = async (courseId: string) => {
     if (courseId) {
@@ -110,19 +201,14 @@ const TreeBrowser: React.FC = () => {
   };
 
   const handleOpenCourse = async (courseId: string, courseName: string) => {
-    // Check if course is already open in a tab
     const existingTabIndex = openTabs.findIndex(
       (tab) => tab.course_id === courseId
     );
 
     if (existingTabIndex !== -1) {
-      // If course is already open, just switch to that tab
       setActiveTabIndex(existingTabIndex);
     } else {
-      // Load course details
       const details = await loadCourseDetails(courseId);
-
-      // Add new tab
       setOpenTabs((prev) => [
         ...prev,
         { course_id: courseId, name: courseName, details },
@@ -140,9 +226,7 @@ const TreeBrowser: React.FC = () => {
       return newTabs;
     });
 
-    // Adjust active tab index if needed
     if (index === activeTabIndex) {
-      // If closing active tab, activate the previous tab or the next one if no previous
       if (index > 0) {
         setActiveTabIndex(index - 1);
       } else if (openTabs.length > 1) {
@@ -151,7 +235,6 @@ const TreeBrowser: React.FC = () => {
         setActiveTabIndex(-1);
       }
     } else if (index < activeTabIndex) {
-      // If closing a tab before the active one, decrement active index
       setActiveTabIndex((prev) => prev - 1);
     }
   };
@@ -163,7 +246,6 @@ const TreeBrowser: React.FC = () => {
 
     if (!treeData) return null;
 
-    // Function to check if a node or its children match the search query
     const nodeMatchesSearch = (node: CourseNode): boolean => {
       if (!searchQuery) return true;
 
@@ -173,7 +255,6 @@ const TreeBrowser: React.FC = () => {
 
       if (nameMatches) return true;
 
-      // Check if any children match
       if (node.children) {
         for (const child of node.children) {
           if (nodeMatchesSearch(child)) {
@@ -185,7 +266,6 @@ const TreeBrowser: React.FC = () => {
       return false;
     };
 
-    // Function to check if a node or its children match the favorites filter
     const nodeMatchesFavorites = (node: CourseNode): boolean => {
       if (activeTab !== "favorites") return true;
 
@@ -193,7 +273,6 @@ const TreeBrowser: React.FC = () => {
         return true;
       }
 
-      // Check if any children match
       if (node.children) {
         for (const child of node.children) {
           if (nodeMatchesFavorites(child)) {
@@ -205,20 +284,17 @@ const TreeBrowser: React.FC = () => {
       return false;
     };
 
-    // Filter function that preserves the tree structure
     const filterNode = (node: CourseNode): CourseNode | null => {
       if (!nodeMatchesSearch(node) || !nodeMatchesFavorites(node)) {
         return null;
       }
 
-      // Create a new filtered node
       const filteredNode: CourseNode = {
         name: node.name,
         value: node.value,
         children: [],
       };
 
-      // Filter children recursively
       if (node.children) {
         node.children.forEach((child) => {
           const filteredChild = filterNode(child);
@@ -310,8 +386,8 @@ const TreeBrowser: React.FC = () => {
         } ${isMobile && activeTabIndex !== -1 ? "hidden" : "flex"}`}
       >
         <div className="flex flex-col h-full w-full">
-          <div className="p-4 border-b border-muted">
-            <div className="relative">
+          <div className="p-4 border-b border-muted flex justify-between items-center">
+            <div className="relative flex-1 mr-2">
               <Search
                 size={16}
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
@@ -324,6 +400,34 @@ const TreeBrowser: React.FC = () => {
                 className="w-full pl-9 pr-4 py-2"
               />
             </div>
+            
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="h-8 w-8 cursor-pointer">
+                    <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <div className="px-2 py-1.5 text-sm font-medium">{user.email}</div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setAuthDialogOpen(true)}
+                className="whitespace-nowrap"
+              >
+                <User className="mr-2 h-4 w-4" />
+                Sign In
+              </Button>
+            )}
           </div>
 
           <Tabs
@@ -347,24 +451,44 @@ const TreeBrowser: React.FC = () => {
             </div>
           )}
 
-          <div className="overflow-y-auto h-full">
+          <div className="overflow-y-auto h-full relative">
             {loading ? (
               <div className="p-4 text-sm text-muted-foreground">
                 Loading courses...
               </div>
-            ) : activeTab === "favorites" && favorites.length === 0 ? (
-              <div className="p-4 text-sm text-muted-foreground">
-                You don't have any favorite courses yet. Browse courses and
-                click the heart icon to add favorites.
-              </div>
-            ) : filteredTreeData ? (
-              filteredTreeData.children?.map((childNode) =>
-                renderTreeNodes(childNode, 0)
-              )
             ) : (
-              <div className="p-4 text-sm text-muted-foreground">
-                No courses found
-              </div>
+              <>
+                {activeTab === "favorites" && !user && (
+                  <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 p-4">
+                    <h3 className="text-lg font-medium mb-2">Sign in to add favorites</h3>
+                    <p className="text-sm text-muted-foreground mb-4 text-center">
+                      Create an account to save your favorite courses
+                    </p>
+                    <Button 
+                      onClick={() => setAuthDialogOpen(true)}
+                      className="gap-2"
+                    >
+                      <User size={16} />
+                      Sign In
+                    </Button>
+                  </div>
+                )}
+                
+                {activeTab === "favorites" && user && favorites.length === 0 ? (
+                  <div className="p-4 text-sm text-muted-foreground">
+                    You don't have any favorite courses yet. Browse courses and
+                    click the heart icon to add favorites.
+                  </div>
+                ) : filteredTreeData ? (
+                  filteredTreeData.children?.map((childNode) =>
+                    renderTreeNodes(childNode, 0)
+                  )
+                ) : (
+                  <div className="p-4 text-sm text-muted-foreground">
+                    No courses found
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -474,6 +598,64 @@ const TreeBrowser: React.FC = () => {
           </div>
         )}
       </div>
+
+      <Dialog open={authDialogOpen} onOpenChange={setAuthDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{isSignUp ? "Create Account" : "Sign In"}</DialogTitle>
+            <DialogDescription>
+              {isSignUp 
+                ? "Create a new account to save your favorite courses" 
+                : "Sign in to your account to access your favorites"}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSignIn} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your.email@example.com"
+                required
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+            
+            {authError && (
+              <div className="text-destructive text-sm">{authError}</div>
+            )}
+            
+            <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:space-x-0">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsSignUp(!isSignUp)}
+                disabled={authLoading}
+              >
+                {isSignUp ? "Already have an account?" : "Need an account?"}
+              </Button>
+              
+              <Button type="submit" disabled={authLoading}>
+                {authLoading ? "Processing..." : isSignUp ? "Sign Up" : "Sign In"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
