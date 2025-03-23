@@ -4,26 +4,14 @@ import { CourseNode } from "@/services/courseService";
 
 export function useCourseSearch(treeData: CourseNode | null) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
-
-  // Add debounce to search query to delay tree expansion
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchQuery(searchQuery);
-    }, 1000);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [searchQuery]);
 
   // Update expanded nodes based on search query
   useEffect(() => {
-    if (!debouncedSearchQuery || !treeData) return;
+    if (!searchQuery || !treeData) return;
     
     const nodesToExpand = new Set<string>();
-    const searchLowerCase = debouncedSearchQuery.toLowerCase();
+    const searchLowerCase = searchQuery.toLowerCase();
     
     const findMatchingNodes = (node: CourseNode, parentPath: string[] = []): boolean => {
       const currentPath = [...parentPath, node.name];
@@ -54,7 +42,7 @@ export function useCourseSearch(treeData: CourseNode | null) {
     findMatchingNodes(treeData);
     
     setExpandedNodes(nodesToExpand);
-  }, [debouncedSearchQuery, treeData]);
+  }, [searchQuery, treeData]);
 
   // Handle node toggling
   const handleNodeToggle = (nodePath: string) => {
@@ -75,7 +63,6 @@ export function useCourseSearch(treeData: CourseNode | null) {
 
   return {
     searchQuery,
-    debouncedSearchQuery,
     expandedNodes,
     setSearchQuery,
     handleNodeToggle,

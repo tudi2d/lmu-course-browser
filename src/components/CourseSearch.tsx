@@ -15,6 +15,38 @@ const CourseSearch: React.FC<CourseSearchProps> = ({
   setSearchQuery,
   clearSearch,
 }) => {
+  const [inputValue, setInputValue] = React.useState(searchQuery);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Update local input value when searchQuery prop changes
+  React.useEffect(() => {
+    setInputValue(searchQuery);
+  }, [searchQuery]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+    
+    // Clear any existing timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    
+    // Set a new timeout
+    timeoutRef.current = setTimeout(() => {
+      setSearchQuery(value);
+    }, 200);
+  };
+
+  // Cleanup timeout on component unmount
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div className="border-b border-muted">
       <div className="p-4 flex justify-between items-center">
@@ -26,13 +58,16 @@ const CourseSearch: React.FC<CourseSearchProps> = ({
           <Input
             type="text"
             placeholder="Search courses..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            value={inputValue}
+            onChange={handleInputChange}
             className="w-full pl-9 pr-9 py-2"
           />
-          {searchQuery && (
+          {inputValue && (
             <button
-              onClick={clearSearch}
+              onClick={() => {
+                setInputValue("");
+                clearSearch();
+              }}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <X size={16} />
