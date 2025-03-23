@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { 
   getLocalFavorites, 
@@ -10,6 +9,9 @@ import {
   removeDbFavorite,
   syncFavoritesToDb
 } from './dbService';
+
+// Ensure these functions are explicitly exported
+export { getLocalFavorites, saveLocalFavorites };
 
 /**
  * Sync local favorites with database when user logs in
@@ -34,22 +36,18 @@ export const fetchFavorites = async (): Promise<string[]> => {
     const localFavorites = getLocalFavorites();
     
     if (!user) {
-      // Return local favorites for non-authenticated users
       console.log('No user authenticated, using local favorites:', localFavorites);
       return localFavorites;
     }
     
-    // For authenticated users, get favorites from database
     const dbFavorites = await fetchDbFavorites(user.id);
     console.log('Loaded favorites from DB:', dbFavorites);
     
-    // If there are local favorites not in the DB, sync them
     const localOnlyFavorites = localFavorites.filter(id => !dbFavorites.includes(id));
     if (localOnlyFavorites.length > 0) {
       console.log('Found local favorites not in DB, syncing them...', localOnlyFavorites);
       await syncFavoritesOnLogin(user.id);
       
-      // Refetch after sync
       const updatedFavorites = await fetchDbFavorites(user.id);
       console.log('Updated favorites after sync:', updatedFavorites);
       return updatedFavorites;
@@ -81,7 +79,6 @@ export const addFavorite = async (courseId: string): Promise<boolean> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
-    // For non-authenticated users, save to local storage
     if (!user) {
       const favorites = getLocalFavorites();
       if (!favorites.includes(courseId)) {
@@ -92,10 +89,8 @@ export const addFavorite = async (courseId: string): Promise<boolean> => {
       return true;
     }
     
-    // For authenticated users, save to database
     const success = await addDbFavorite(user.id, courseId);
     if (!success) {
-      // Fallback to local storage
       const favorites = getLocalFavorites();
       if (!favorites.includes(courseId)) {
         favorites.push(courseId);
@@ -121,7 +116,6 @@ export const removeFavorite = async (courseId: string): Promise<boolean> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     
-    // For non-authenticated users, remove from local storage
     if (!user) {
       const favorites = getLocalFavorites();
       const updatedFavorites = favorites.filter(id => id !== courseId);
@@ -130,10 +124,8 @@ export const removeFavorite = async (courseId: string): Promise<boolean> => {
       return true;
     }
     
-    // For authenticated users, remove from database
     const success = await removeDbFavorite(user.id, courseId);
     if (!success) {
-      // Still update local storage as fallback
       const favorites = getLocalFavorites();
       const updatedFavorites = favorites.filter(id => id !== courseId);
       saveLocalFavorites(updatedFavorites);
