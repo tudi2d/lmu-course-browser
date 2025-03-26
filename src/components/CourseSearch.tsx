@@ -63,7 +63,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({
             <Heart size={14} />
             Love
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setSearchQuery("Data Analysis")} className="flex items-center gap-1">
+          <Button variant="outline" size="sm" onClick={() => setSearchQuery("Data Analysis")} className="flex items-center gap-1 text-muted-foreground rounded-full text-sm">
             <BarChart size={14} />
             Data Analysis
           </Button>
