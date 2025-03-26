@@ -1,3 +1,4 @@
+
 import courseTreeData from '../data/course_tree.json';
 import { supabase } from '@/integrations/supabase/client';
 import { CourseNode, Course } from './types';
@@ -72,6 +73,13 @@ export const fetchCourseDetails = async (courseId: string): Promise<Course | nul
         evaluation_method: data.evaluation_method || undefined,
         url: data.url || undefined,
         faculties: data.faculties || undefined,
+        // Include the new properties from database
+        departments: data.departments || undefined,
+        degree_programs: data.degree_programs || undefined,
+        instructors: data.instructors || undefined,
+        registration_periods: data.registration_periods || undefined,
+        modules: data.modules || undefined,
+        detail_url: data.detail_url || undefined,
         // Parse schedule data properly
         schedule: parseScheduleData(data.schedule)
       };

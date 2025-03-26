@@ -32,6 +32,13 @@ export interface Course {
   url?: string;
   schedule?: Schedule[];
   faculties?: string[];
+  // Add missing properties
+  departments?: string[];
+  degree_programs?: string[];
+  instructors?: string[];
+  registration_periods?: any[];
+  modules?: any[];
+  detail_url?: string;
 }
 
 export interface CourseTreeItem {
