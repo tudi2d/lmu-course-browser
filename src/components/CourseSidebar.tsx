@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 import CourseSearch from "./CourseSearch";
 import CourseTreeRenderer from "./CourseTreeRenderer";
-import CalendarModal from "./CalendarModal";
 import FavoritesList from "./FavoritesList";
 import { CourseNode } from "@/services/courseService";
 
@@ -72,12 +71,6 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           </TabsTrigger>
         </TabsList>
       </Tabs>
-
-      {activeTab === "favorites" && (
-        <div className="p-2 border-b border-muted">
-          <CalendarModal />
-        </div>
-      )}
 
       <div className="overflow-y-auto h-full relative">
         {loading ? (
