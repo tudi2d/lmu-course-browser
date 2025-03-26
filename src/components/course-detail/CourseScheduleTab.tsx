@@ -1,11 +1,10 @@
 
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ExternalLink } from "lucide-react";
+import { Calendar, ExternalLink } from "lucide-react";
 import { Course, Schedule, ScheduleItem } from "@/services/types";
 import { Badge } from "@/components/ui/badge";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Button } from "@/components/ui/button";
 
 interface CourseScheduleTabProps {
   courseData: Course;
@@ -58,7 +57,7 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
                 <h4 className="text-sm font-medium mb-2">Rooms:</h4>
                 <div className="space-y-2">
                   {item.rooms.map((room, roomIdx) => (
-                    <div key={roomIdx} className="flex items-start">
+                    <div key={roomIdx} className="flex items-start justify-between">
                       <div className="flex-1">
                         <p className="text-sm">{room.name}</p>
                         {room.floor_plan && (
@@ -72,17 +71,19 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
                           </a>
                         )}
                       </div>
-                      {room.details_url && (
-                        <a
-                          href={room.details_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:underline"
-                          aria-label="Room details"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      )}
+                      <div className="flex space-x-2">
+                        {room.details_url && (
+                          <a
+                            href={room.details_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline"
+                            aria-label="Room details"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -131,6 +132,7 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
             <TableHead>Time</TableHead>
             <TableHead>Room</TableHead>
             <TableHead>Dates</TableHead>
+            <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -165,6 +167,20 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
                     ? `${formattedFirstDate} to ${formattedLastDate}`
                     : formattedFirstDate || formattedLastDate || "N/A"}
                 </TableCell>
+                <TableCell>
+                  {item.calendar_link && (
+                    <a
+                      href={item.calendar_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Download iCal"
+                    >
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                        <Calendar className="h-4 w-4" />
+                      </Button>
+                    </a>
+                  )}
+                </TableCell>
               </TableRow>
             );
           })}
@@ -173,6 +189,38 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
     );
   };
 
-  return isOldFormat ? renderOldScheduleFormat() : renderNewScheduleFormat();
-};
+  // Check for iCal links in the course data
+  const renderCalendarLinks = () => {
+    if (!courseData.calendar_links || courseData.calendar_links.length === 0) {
+      return null;
+    }
 
+    return (
+      <div className="mt-4 flex flex-wrap gap-2">
+        {courseData.calendar_links.map((link, index) => (
+          link.url && (
+            <a
+              key={index}
+              href={link.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex"
+            >
+              <Button variant="outline" size="sm" className="gap-2">
+                <Calendar className="h-4 w-4" />
+                {link.title || "Download iCal"}
+              </Button>
+            </a>
+          )
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {isOldFormat ? renderOldScheduleFormat() : renderNewScheduleFormat()}
+      {renderCalendarLinks()}
+    </div>
+  );
+};

@@ -1,4 +1,3 @@
-
 import { Json } from '@/integrations/supabase/types';
 
 // Define types needed by components
@@ -33,6 +32,7 @@ export interface Schedule {
   last_date: string;
   room: string;
   room_link: string;
+  calendar_link?: string;
 }
 
 export interface LocationInfo {
