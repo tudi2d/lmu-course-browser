@@ -6,13 +6,14 @@ export function useCourseSearch(treeData: CourseNode | null) {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
-  // Update expanded nodes based on search query
+  // Update expanded nodes based on search query - more targeted expansion
   useEffect(() => {
     if (!searchQuery || !treeData) return;
     
     const nodesToExpand = new Set<string>();
     const searchLowerCase = searchQuery.toLowerCase();
     
+    // Only expand direct paths to matching nodes, not everything
     const findMatchingNodes = (node: CourseNode, parentPath: string[] = []): boolean => {
       const currentPath = [...parentPath, node.name];
       const nodePath = currentPath.join("/");
@@ -28,11 +29,18 @@ export function useCourseSearch(treeData: CourseNode | null) {
         }
       }
       
+      // Only add paths that directly lead to matching nodes 
       if (nameMatches || hasMatchingChild) {
-        for (let i = 0; i < currentPath.length; i++) {
-          const path = currentPath.slice(0, i + 1).join("/");
-          nodesToExpand.add(path);
+        // Only add the direct path, not all parent paths
+        if (nameMatches) {
+          nodesToExpand.add(nodePath);
         }
+        
+        // Add immediate parent to make the match visible
+        if (parentPath.length > 0) {
+          nodesToExpand.add(parentPath.join("/"));
+        }
+        
         return true;
       }
       
