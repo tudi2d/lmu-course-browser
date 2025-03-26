@@ -4,7 +4,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Course } from "@/services/types";
 import { CourseDetailsTab } from "./CourseDetailsTab";
 import { CourseScheduleTab } from "./CourseScheduleTab";
-import { GenericJSONTab } from "./GenericJSONTab";
+import { CourseInstructorsTab } from "./CourseInstructorsTab";
+import { CourseInstitutionsTab } from "./CourseInstitutionsTab";
+import { CourseModulesTab } from "./CourseModulesTab";
+import { CourseStudyProgramsTab } from "./CourseStudyProgramsTab";
 
 interface CourseTabsSectionProps {
   courseData: Course;
@@ -75,40 +78,28 @@ export const CourseTabsSection: React.FC<CourseTabsSectionProps> = ({ courseData
       {/* Instructors Tab */}
       {hasInstructorDetails && (
         <TabsContent value="instructors" className="pt-4">
-          <GenericJSONTab 
-            title="Instructors" 
-            data={courseData.instructor_details} 
-          />
+          <CourseInstructorsTab instructors={courseData.instructor_details} />
         </TabsContent>
       )}
       
       {/* Institutions Tab */}
       {hasInstitutionDetails && (
         <TabsContent value="institutions" className="pt-4">
-          <GenericJSONTab 
-            title="Institutions" 
-            data={courseData.institution_details} 
-          />
+          <CourseInstitutionsTab institutions={courseData.institution_details} />
         </TabsContent>
       )}
       
       {/* Modules Tab */}
       {hasModuleDetails && (
         <TabsContent value="modules" className="pt-4">
-          <GenericJSONTab 
-            title="Module Details" 
-            data={courseData.module_details} 
-          />
+          <CourseModulesTab modules={courseData.module_details} />
         </TabsContent>
       )}
       
       {/* Study Programs Tab */}
       {hasStudyPrograms && (
         <TabsContent value="programs" className="pt-4">
-          <GenericJSONTab 
-            title="Study Programs" 
-            data={courseData.study_programs} 
-          />
+          <CourseStudyProgramsTab programs={courseData.study_programs} />
         </TabsContent>
       )}
     </Tabs>
