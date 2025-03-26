@@ -59,7 +59,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({
       <div className="px-4 pb-3">
         <p className="text-sm text-muted-foreground mb-2">Learn something new about:</p>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={() => setSearchQuery("Love")} className="flex items-center gap-1 text-muted-foreground text-xs rounded-full">
+          <Button variant="outline" size="sm" onClick={() => setSearchQuery("Love")} className="flex items-center gap-1 text-muted-foreground rounded-full text-sm">
             <Heart size={14} />
             Love
           </Button>
