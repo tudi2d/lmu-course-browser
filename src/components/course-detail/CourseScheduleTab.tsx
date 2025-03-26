@@ -2,9 +2,8 @@
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Calendar, ExternalLink } from "lucide-react";
-import { Course, Schedule, ScheduleItem } from "@/services/types";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Course, Schedule, ScheduleItem, CalendarLink } from "@/services/types";
 
 interface CourseScheduleTabProps {
   courseData: Course;
@@ -20,109 +19,13 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
     return <p className="text-muted-foreground">No schedule information available.</p>;
   }
 
-  // Check if we're using the old schedule format with first_date and last_date
+  // Check if we're using the old schedule format
   const isOldFormat = courseData.schedule.length > 0 && isOldScheduleFormat(courseData.schedule[0]);
 
-  // Render for new schedule format (with day, time, rooms, etc.)
+  // Render for new schedule format
   const renderNewScheduleFormat = () => {
-    // Safely cast to ScheduleItem array since we've verified it's not the old format
+    // Safely cast to ScheduleItem array
     const scheduleItems = courseData.schedule as ScheduleItem[];
-    
-    return (
-      <div className="space-y-4">
-        {scheduleItems.map((item, index) => (
-          <div key={index} className="bg-gray-50 rounded-lg border p-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-3">
-              <div>
-                <h3 className="text-lg font-medium">
-                  {item.day} {item.time}
-                </h3>
-                {item.rhythm && (
-                  <p className="text-sm text-muted-foreground">
-                    {item.rhythm === "woch" ? "Weekly" : item.rhythm}
-                  </p>
-                )}
-              </div>
-              {item.duration?.start && (
-                <div className="text-sm text-muted-foreground mt-2 md:mt-0">
-                  {item.duration.start}
-                  {item.duration.end && ` to ${item.duration.end}`}
-                </div>
-              )}
-            </div>
-
-            {/* Rooms */}
-            {item.rooms && item.rooms.length > 0 && (
-              <div className="mt-3">
-                <h4 className="text-sm font-medium mb-2">Rooms:</h4>
-                <div className="space-y-2">
-                  {item.rooms.map((room, roomIdx) => (
-                    <div key={roomIdx} className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <p className="text-sm">{room.name}</p>
-                        {room.floor_plan && (
-                          <a
-                            href={room.floor_plan}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 hover:underline inline-flex items-center mt-1"
-                          >
-                            Floor Plan <ExternalLink className="ml-1 h-3 w-3" />
-                          </a>
-                        )}
-                      </div>
-                      <div className="flex space-x-2">
-                        {room.details_url && (
-                          <a
-                            href={room.details_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:underline"
-                            aria-label="Room details"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Instructor */}
-            {item.instructor && (
-              <div className="mt-3">
-                <h4 className="text-sm font-medium mb-1">Instructor:</h4>
-                <p className="text-sm">{item.instructor}</p>
-              </div>
-            )}
-
-            {/* Notes */}
-            {item.notes && (
-              <div className="mt-3">
-                <h4 className="text-sm font-medium mb-1">Notes:</h4>
-                <p className="text-sm text-muted-foreground">{item.notes}</p>
-              </div>
-            )}
-
-            {/* Cancelled dates */}
-            {item.cancelled_dates && (
-              <div className="mt-3">
-                <h4 className="text-sm font-medium mb-1">Cancelled:</h4>
-                <p className="text-sm text-red-600">{item.cancelled_dates}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  // Render for old schedule format (with first_date, last_date, etc.)
-  const renderOldScheduleFormat = () => {
-    // Safely cast to Schedule array since we've verified it's the old format
-    const scheduleItems = courseData.schedule as Schedule[];
     
     return (
       <Table>
@@ -130,52 +33,69 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
           <TableRow>
             <TableHead>Day</TableHead>
             <TableHead>Time</TableHead>
+            <TableHead>Rhythm</TableHead>
+            <TableHead>Duration</TableHead>
             <TableHead>Room</TableHead>
-            <TableHead>Dates</TableHead>
-            <TableHead></TableHead>
+            <TableHead>Notes</TableHead>
+            <TableHead className="w-10"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {scheduleItems.map((item, index) => {
-            const firstDate = item.first_date ? new Date(item.first_date) : null;
-            const formattedFirstDate = firstDate ? firstDate.toLocaleDateString() : item.first_date;
-            
-            const lastDate = item.last_date ? new Date(item.last_date) : null;
-            const formattedLastDate = lastDate ? lastDate.toLocaleDateString() : item.last_date;
+            // Find corresponding calendar link if available
+            const calendarLink = courseData.calendar_links && 
+                               courseData.calendar_links[index] ? 
+                               courseData.calendar_links[index] : null;
             
             return (
               <TableRow key={index}>
                 <TableCell>{item.day}</TableCell>
+                <TableCell>{item.time}</TableCell>
                 <TableCell>
-                  {item.time_start} - {item.time_end}
+                  {item.rhythm === "woch" ? "Weekly" : item.rhythm || "N/A"}
                 </TableCell>
                 <TableCell>
-                  {item.room}
-                  {item.room_link && (
+                  {item.duration?.start ? (
+                    <>
+                      {item.duration.start}
+                      {item.duration.end && <> to {item.duration.end}</>}
+                    </>
+                  ) : "N/A"}
+                </TableCell>
+                <TableCell>
+                  {item.rooms && item.rooms.length > 0 ? (
+                    <div className="space-y-1">
+                      {item.rooms.map((room, roomIdx) => (
+                        <div key={roomIdx} className="flex items-center">
+                          <span>{room.name}</span>
+                          {room.details_url && (
+                            <a
+                              href={room.details_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="ml-1 text-blue-600 hover:underline"
+                              aria-label="Room details"
+                            >
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : "N/A"}
+                </TableCell>
+                <TableCell>
+                  {item.notes || "N/A"}
+                </TableCell>
+                <TableCell>
+                  {calendarLink && calendarLink.url && (
                     <a
-                      href={item.room_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="ml-2 inline-flex items-center text-blue-600 hover:underline"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {formattedFirstDate && formattedLastDate
-                    ? `${formattedFirstDate} to ${formattedLastDate}`
-                    : formattedFirstDate || formattedLastDate || "N/A"}
-                </TableCell>
-                <TableCell>
-                  {item.calendar_link && (
-                    <a
-                      href={item.calendar_link}
+                      href={calendarLink.url}
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Download iCal"
                     >
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                         <Calendar className="h-4 w-4" />
                       </Button>
                     </a>
@@ -189,38 +109,114 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
     );
   };
 
-  // Check for iCal links in the course data
-  const renderCalendarLinks = () => {
-    if (!courseData.calendar_links || courseData.calendar_links.length === 0) {
+  // Render for old schedule format 
+  const renderOldScheduleFormat = () => {
+    // Safely cast to Schedule array
+    const scheduleItems = courseData.schedule as Schedule[];
+    
+    return (
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Day</TableHead>
+            <TableHead>Time</TableHead>
+            <TableHead>Rhythm</TableHead>
+            <TableHead>Duration</TableHead>
+            <TableHead>Room</TableHead>
+            <TableHead className="w-10"></TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {scheduleItems.map((item, index) => {
+            // Format dates for readability
+            const formattedFirstDate = item.first_date ? new Date(item.first_date).toLocaleDateString() : item.first_date;
+            const formattedLastDate = item.last_date ? new Date(item.last_date).toLocaleDateString() : item.last_date;
+            
+            return (
+              <TableRow key={index}>
+                <TableCell>{item.day}</TableCell>
+                <TableCell>
+                  {item.time_start} - {item.time_end}
+                </TableCell>
+                <TableCell>{item.rhythm || "N/A"}</TableCell>
+                <TableCell>
+                  {formattedFirstDate && formattedLastDate
+                    ? `${formattedFirstDate} to ${formattedLastDate}`
+                    : formattedFirstDate || formattedLastDate || "N/A"}
+                </TableCell>
+                <TableCell>
+                  {item.room}
+                  {item.room_link && (
+                    <a
+                      href={item.room_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-1 inline-flex items-center text-blue-600 hover:underline"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {item.calendar_link && (
+                    <a
+                      href={item.calendar_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Download iCal"
+                    >
+                      <Button variant="ghost" size="sm" className="gap-2 h-8 w-8 p-0">
+                        <Calendar className="h-4 w-4" />
+                      </Button>
+                    </a>
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    );
+  };
+
+  // Render stand-alone calendar links section if they exist but aren't mapped directly to schedule items
+  const renderStandaloneCalendarLinks = () => {
+    // Only show if there are calendar links but they're not mapped 1:1 with schedule items
+    if (!courseData.calendar_links || 
+        courseData.calendar_links.length === 0 ||
+        (courseData.schedule && courseData.calendar_links.length === courseData.schedule.length)) {
       return null;
     }
 
     return (
-      <div className="mt-4 flex flex-wrap gap-2">
-        {courseData.calendar_links.map((link, index) => (
-          link.url && (
-            <a
-              key={index}
-              href={link.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex"
-            >
-              <Button variant="outline" size="sm" className="gap-2">
-                <Calendar className="h-4 w-4" />
-                {link.title || "Download iCal"}
-              </Button>
-            </a>
-          )
-        ))}
+      <div className="mt-4">
+        <h3 className="text-sm font-medium mb-2">Calendar Links</h3>
+        <div className="flex flex-wrap gap-2">
+          {courseData.calendar_links.map((link, index) => (
+            link.url && (
+              <a
+                key={index}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex"
+              >
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Calendar className="h-4 w-4" />
+                  iCal
+                </Button>
+              </a>
+            )
+          ))}
+        </div>
       </div>
     );
   };
 
   return (
-    <div>
+    <div className="space-y-4">
       {isOldFormat ? renderOldScheduleFormat() : renderNewScheduleFormat()}
-      {renderCalendarLinks()}
+      {renderStandaloneCalendarLinks()}
     </div>
   );
 };
