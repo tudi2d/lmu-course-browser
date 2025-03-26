@@ -40,6 +40,8 @@ export type Database = {
       }
       courses: {
         Row: {
+          assessment_details: Json | null
+          calendar_links: Json | null
           created_at: string | null
           degree_programs: string[] | null
           departments: string[] | null
@@ -50,27 +52,36 @@ export type Database = {
           faculties: string[] | null
           has_content: boolean | null
           id: string
+          institution_details: Json | null
+          instructor_details: Json | null
           instructors: string[] | null
           language: string | null
           literature: string | null
+          long_text: string | null
           max_participants: number | null
-          modules: string[] | null
+          module_details: Json | null
+          modules: Json | null
           name: string
           number: string | null
           processing_date: string | null
           professor: string | null
+          qr_code: Json | null
           registration_info: string | null
-          registration_periods: string[] | null
+          registration_periods: Json | null
           requirements: string | null
           schedule: Json | null
           scrape_success: boolean | null
           semester: string | null
+          short_comment: string | null
+          study_programs: Json | null
           sws: number | null
           target_group: string | null
           type: string | null
           url: string | null
         }
         Insert: {
+          assessment_details?: Json | null
+          calendar_links?: Json | null
           created_at?: string | null
           degree_programs?: string[] | null
           departments?: string[] | null
@@ -81,27 +92,36 @@ export type Database = {
           faculties?: string[] | null
           has_content?: boolean | null
           id?: string
+          institution_details?: Json | null
+          instructor_details?: Json | null
           instructors?: string[] | null
           language?: string | null
           literature?: string | null
+          long_text?: string | null
           max_participants?: number | null
-          modules?: string[] | null
+          module_details?: Json | null
+          modules?: Json | null
           name: string
           number?: string | null
           processing_date?: string | null
           professor?: string | null
+          qr_code?: Json | null
           registration_info?: string | null
-          registration_periods?: string[] | null
+          registration_periods?: Json | null
           requirements?: string | null
           schedule?: Json | null
           scrape_success?: boolean | null
           semester?: string | null
+          short_comment?: string | null
+          study_programs?: Json | null
           sws?: number | null
           target_group?: string | null
           type?: string | null
           url?: string | null
         }
         Update: {
+          assessment_details?: Json | null
+          calendar_links?: Json | null
           created_at?: string | null
           degree_programs?: string[] | null
           departments?: string[] | null
@@ -112,21 +132,28 @@ export type Database = {
           faculties?: string[] | null
           has_content?: boolean | null
           id?: string
+          institution_details?: Json | null
+          instructor_details?: Json | null
           instructors?: string[] | null
           language?: string | null
           literature?: string | null
+          long_text?: string | null
           max_participants?: number | null
-          modules?: string[] | null
+          module_details?: Json | null
+          modules?: Json | null
           name?: string
           number?: string | null
           processing_date?: string | null
           professor?: string | null
+          qr_code?: Json | null
           registration_info?: string | null
-          registration_periods?: string[] | null
+          registration_periods?: Json | null
           requirements?: string | null
           schedule?: Json | null
           scrape_success?: boolean | null
           semester?: string | null
+          short_comment?: string | null
+          study_programs?: Json | null
           sws?: number | null
           target_group?: string | null
           type?: string | null

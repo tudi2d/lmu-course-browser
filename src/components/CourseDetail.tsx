@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useContext } from "react";
-import { ExternalLink, Calendar, Heart } from "lucide-react";
+import { ExternalLink, Calendar, Heart, Building, Book, Users, GraduationCap, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -19,6 +20,7 @@ import {
 import { toast } from "@/components/ui/use-toast";
 import { Course } from "@/services/courseService";
 import { toggleFavorite } from "@/services/favoriteService";
+import { Badge } from "@/components/ui/badge";
 
 interface CourseDetailProps {
   course: Course | null;
@@ -168,6 +170,78 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
           )}
         </div>
 
+        {/* Key Information Cards - Always Visible */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          {/* Faculty/Department Card */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Building className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium">Faculty</h3>
+            </div>
+            <div>
+              {courseData.faculties && courseData.faculties.length > 0 ? (
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {courseData.faculties.map((faculty, idx) => (
+                    <Badge key={idx} variant="outline" className="text-xs">
+                      {faculty}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">Not specified</p>
+              )}
+            </div>
+          </div>
+
+          {/* Language/Type Card */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Globe className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium">Format</h3>
+            </div>
+            <div className="space-y-1">
+              {courseData.language && (
+                <p className="text-xs">
+                  <span className="font-medium">Language:</span> {courseData.language}
+                </p>
+              )}
+              {courseData.type && (
+                <p className="text-xs">
+                  <span className="font-medium">Type:</span> {courseData.type}
+                </p>
+              )}
+              {courseData.sws && (
+                <p className="text-xs">
+                  <span className="font-medium">SWS:</span> {courseData.sws}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Participants Card */}
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-medium">Participants</h3>
+            </div>
+            <div className="space-y-1">
+              {courseData.max_participants !== undefined ? (
+                <p className="text-xs">
+                  <span className="font-medium">Max:</span> {courseData.max_participants}
+                </p>
+              ) : (
+                <p className="text-xs text-muted-foreground">No limit specified</p>
+              )}
+              {courseData.target_group && (
+                <p className="text-xs">
+                  <span className="font-medium">Target Group:</span> {courseData.target_group.substring(0, 60)}
+                  {courseData.target_group.length > 60 ? "..." : ""}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
         {/* Tabs for different content sections */}
         <Tabs defaultValue="details" className="mb-8">
           <TabsList>
@@ -175,6 +249,9 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
             {courseData.description && (
               <TabsTrigger value="description">Description</TabsTrigger>
+            )}
+            {courseData.modules && (
+              <TabsTrigger value="modules">Modules</TabsTrigger>
             )}
           </TabsList>
 
@@ -235,6 +312,24 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
                     <p className="text-sm">{courseData.max_participants}</p>
                   </div>
                 )}
+                
+              {courseData.departments && courseData.departments.length > 0 && (
+                <div className="mb-3">
+                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                    Departments
+                  </h3>
+                  <p className="text-sm">{courseData.departments.join(', ')}</p>
+                </div>
+              )}
+              
+              {courseData.degree_programs && courseData.degree_programs.length > 0 && (
+                <div className="mb-3">
+                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                    Degree Programs
+                  </h3>
+                  <p className="text-sm">{courseData.degree_programs.join(', ')}</p>
+                </div>
+              )}
             </div>
 
             {/* Additional information sections in accordion */}
@@ -290,6 +385,28 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
                   </AccordionTrigger>
                   <AccordionContent className="text-sm">
                     {courseData.evaluation_method}
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+              
+              {courseData.instructors && courseData.instructors.length > 0 && (
+                <AccordionItem value="instructors">
+                  <AccordionTrigger className="text-sm">
+                    Instructors
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm">
+                    {courseData.instructors.join(', ')}
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+              
+              {courseData.registration_periods && courseData.registration_periods.length > 0 && (
+                <AccordionItem value="registration_periods">
+                  <AccordionTrigger className="text-sm">
+                    Registration Periods
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm">
+                    {courseData.registration_periods.join(', ')}
                   </AccordionContent>
                 </AccordionItem>
               )}
@@ -361,11 +478,33 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
               </div>
             </TabsContent>
           )}
+          
+          {/* Modules Tab */}
+          {courseData.modules && (
+            <TabsContent value="modules" className="pt-4">
+              <div className="prose prose-sm max-w-none">
+                <h2 className="text-lg font-medium mb-3">Modules</h2>
+                <div className="space-y-2">
+                  {Array.isArray(courseData.modules) ? (
+                    courseData.modules.map((module, idx) => (
+                      <div key={idx} className="bg-gray-50 p-3 rounded text-sm">
+                        {typeof module === 'string' ? module : JSON.stringify(module)}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Module information is not available in a readable format.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* External links section */}
-        {courseData.url && (
-          <div className="mt-6">
+        <div className="mt-6 space-y-2">
+          {courseData.url && (
             <Button variant="outline" size="sm" className="w-full" asChild>
               <a
                 href={courseData.url}
@@ -376,8 +515,21 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
                 Visit course page
               </a>
             </Button>
-          </div>
-        )}
+          )}
+          
+          {courseData.detail_url && courseData.detail_url !== courseData.url && (
+            <Button variant="outline" size="sm" className="w-full" asChild>
+              <a
+                href={courseData.detail_url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Book size={14} className="mr-2" />
+                View detailed course description
+              </a>
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
