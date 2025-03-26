@@ -67,7 +67,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({
             <BarChart size={14} />
             Data Analysis
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setSearchQuery("Quantum")} className="flex items-center gap-1">
+          <Button variant="outline" size="sm" onClick={() => setSearchQuery("Quantum")} className="flex items-center gap-1 text-muted-foreground rounded-full text-sm">
             <Atom size={14} />
             Quantum
           </Button>
