@@ -1,7 +1,7 @@
 
 import React from "react";
 import { X } from "lucide-react";
-import CourseDetail from "./CourseDetail";
+import CourseDetail from "./course-detail";
 import { Button } from "@/components/ui/button";
 
 interface CourseTabsViewProps {
