@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect, useContext } from "react";
-import { ExternalLink, Calendar, Heart, Building, Book, Users, GraduationCap, Globe } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ExternalLink, Calendar, Heart, MapPin, Book, Users, GraduationCap, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -170,76 +170,31 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
           )}
         </div>
 
-        {/* Key Information Cards - Always Visible */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {/* Faculty/Department Card */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Building className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-sm font-medium">Faculty</h3>
+        {/* Key Information Cards - Always Visible - Updated as requested */}
+        <div className="space-y-4 mb-6">
+          {/* Description if available */}
+          {courseData.description && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-sm font-medium mb-2">Description</h3>
+              <p className="text-sm text-muted-foreground">{courseData.description}</p>
             </div>
-            <div>
-              {courseData.faculties && courseData.faculties.length > 0 ? (
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {courseData.faculties.map((faculty, idx) => (
-                    <Badge key={idx} variant="outline" className="text-xs">
-                      {faculty}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-muted-foreground">Not specified</p>
-              )}
+          )}
+          
+          {/* Short comment if available */}
+          {courseData.short_comment && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-sm font-medium mb-2">Summary</h3>
+              <p className="text-sm text-muted-foreground">{courseData.short_comment}</p>
             </div>
-          </div>
-
-          {/* Language/Type Card */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Globe className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-sm font-medium">Format</h3>
+          )}
+          
+          {/* Long text if available */}
+          {courseData.long_text && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <h3 className="text-sm font-medium mb-2">Details</h3>
+              <p className="text-sm text-muted-foreground">{courseData.long_text}</p>
             </div>
-            <div className="space-y-1">
-              {courseData.language && (
-                <p className="text-xs">
-                  <span className="font-medium">Language:</span> {courseData.language}
-                </p>
-              )}
-              {courseData.type && (
-                <p className="text-xs">
-                  <span className="font-medium">Type:</span> {courseData.type}
-                </p>
-              )}
-              {courseData.sws && (
-                <p className="text-xs">
-                  <span className="font-medium">SWS:</span> {courseData.sws}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Participants Card */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-sm font-medium">Participants</h3>
-            </div>
-            <div className="space-y-1">
-              {courseData.max_participants !== undefined ? (
-                <p className="text-xs">
-                  <span className="font-medium">Max:</span> {courseData.max_participants}
-                </p>
-              ) : (
-                <p className="text-xs text-muted-foreground">No limit specified</p>
-              )}
-              {courseData.target_group && (
-                <p className="text-xs">
-                  <span className="font-medium">Target Group:</span> {courseData.target_group.substring(0, 60)}
-                  {courseData.target_group.length > 60 ? "..." : ""}
-                </p>
-              )}
-            </div>
-          </div>
+          )}
         </div>
 
         {/* Tabs for different content sections */}
@@ -247,11 +202,17 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
           <TabsList>
             <TabsTrigger value="details">Details</TabsTrigger>
             <TabsTrigger value="schedule">Schedule</TabsTrigger>
-            {courseData.description && (
-              <TabsTrigger value="description">Description</TabsTrigger>
+            {courseData.instructor_details && (
+              <TabsTrigger value="instructors">Instructors</TabsTrigger>
             )}
-            {courseData.modules && (
+            {courseData.institution_details && (
+              <TabsTrigger value="institutions">Institutions</TabsTrigger>
+            )}
+            {courseData.module_details && (
               <TabsTrigger value="modules">Modules</TabsTrigger>
+            )}
+            {courseData.study_programs && (
+              <TabsTrigger value="programs">Study Programs</TabsTrigger>
             )}
           </TabsList>
 
@@ -330,6 +291,15 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
                   <p className="text-sm">{courseData.degree_programs.join(', ')}</p>
                 </div>
               )}
+              
+              {courseData.faculties && courseData.faculties.length > 0 && (
+                <div className="mb-3">
+                  <h3 className="text-xs uppercase tracking-wide text-muted-foreground mb-1">
+                    Faculties
+                  </h3>
+                  <p className="text-sm">{courseData.faculties.join(', ')}</p>
+                </div>
+              )}
             </div>
 
             {/* Additional information sections in accordion */}
@@ -389,24 +359,20 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
                 </AccordionItem>
               )}
               
-              {courseData.instructors && courseData.instructors.length > 0 && (
-                <AccordionItem value="instructors">
-                  <AccordionTrigger className="text-sm">
-                    Instructors
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm">
-                    {courseData.instructors.join(', ')}
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-              
               {courseData.registration_periods && courseData.registration_periods.length > 0 && (
                 <AccordionItem value="registration_periods">
                   <AccordionTrigger className="text-sm">
                     Registration Periods
                   </AccordionTrigger>
                   <AccordionContent className="text-sm">
-                    {courseData.registration_periods.join(', ')}
+                    {Array.isArray(courseData.registration_periods) 
+                      ? courseData.registration_periods.map((period, idx) => (
+                          <div key={idx} className="mb-2">
+                            {typeof period === 'string' ? period : JSON.stringify(period)}
+                          </div>
+                        ))
+                      : JSON.stringify(courseData.registration_periods)
+                    }
                   </AccordionContent>
                 </AccordionItem>
               )}
@@ -437,14 +403,33 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
                         </TableCell>
                         <TableCell>{item.room || "—"}</TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-tree-accent"
-                          >
-                            <Calendar size={14} className="mr-1.5" />
-                            iCal
-                          </Button>
+                          {courseData.calendar_links && courseData.calendar_links[index]?.url ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-tree-accent"
+                              asChild
+                            >
+                              <a 
+                                href={courseData.calendar_links[index].url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                              >
+                                <Calendar size={14} className="mr-1.5" />
+                                iCal
+                              </a>
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-muted-foreground"
+                              disabled
+                            >
+                              <Calendar size={14} className="mr-1.5" />
+                              No iCal
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -467,26 +452,58 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
             )}
           </TabsContent>
 
-          {/* Description Tab */}
-          {courseData.description && (
-            <TabsContent value="description" className="pt-4">
+          {/* Instructors Tab */}
+          {courseData.instructor_details && (
+            <TabsContent value="instructors" className="pt-4">
               <div className="prose prose-sm max-w-none">
-                <h2 className="text-lg font-medium mb-3">Description</h2>
-                <p className="text-sm leading-relaxed">
-                  {courseData.description}
-                </p>
+                <h2 className="text-lg font-medium mb-3">Instructors</h2>
+                <div className="space-y-2">
+                  {Array.isArray(courseData.instructor_details) ? (
+                    courseData.instructor_details.map((instructor, idx) => (
+                      <div key={idx} className="bg-gray-50 p-3 rounded text-sm">
+                        {typeof instructor === 'string' ? instructor : JSON.stringify(instructor)}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Instructor information is not available in a readable format.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+          )}
+          
+          {/* Institutions Tab */}
+          {courseData.institution_details && (
+            <TabsContent value="institutions" className="pt-4">
+              <div className="prose prose-sm max-w-none">
+                <h2 className="text-lg font-medium mb-3">Institutions</h2>
+                <div className="space-y-2">
+                  {Array.isArray(courseData.institution_details) ? (
+                    courseData.institution_details.map((institution, idx) => (
+                      <div key={idx} className="bg-gray-50 p-3 rounded text-sm">
+                        {typeof institution === 'string' ? institution : JSON.stringify(institution)}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Institution information is not available in a readable format.
+                    </p>
+                  )}
+                </div>
               </div>
             </TabsContent>
           )}
           
           {/* Modules Tab */}
-          {courseData.modules && (
+          {courseData.module_details && (
             <TabsContent value="modules" className="pt-4">
               <div className="prose prose-sm max-w-none">
-                <h2 className="text-lg font-medium mb-3">Modules</h2>
+                <h2 className="text-lg font-medium mb-3">Module Details</h2>
                 <div className="space-y-2">
-                  {Array.isArray(courseData.modules) ? (
-                    courseData.modules.map((module, idx) => (
+                  {Array.isArray(courseData.module_details) ? (
+                    courseData.module_details.map((module, idx) => (
                       <div key={idx} className="bg-gray-50 p-3 rounded text-sm">
                         {typeof module === 'string' ? module : JSON.stringify(module)}
                       </div>
@@ -500,7 +517,77 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
               </div>
             </TabsContent>
           )}
+          
+          {/* Study Programs Tab */}
+          {courseData.study_programs && (
+            <TabsContent value="programs" className="pt-4">
+              <div className="prose prose-sm max-w-none">
+                <h2 className="text-lg font-medium mb-3">Study Programs</h2>
+                <div className="space-y-2">
+                  {Array.isArray(courseData.study_programs) ? (
+                    courseData.study_programs.map((program, idx) => (
+                      <div key={idx} className="bg-gray-50 p-3 rounded text-sm">
+                        {typeof program === 'string' ? program : JSON.stringify(program)}
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      Study program information is not available in a readable format.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </TabsContent>
+          )}
         </Tabs>
+        
+        {/* Assessment Details Section - Below Tabs */}
+        {courseData.assessment_details && (
+          <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+            <h2 className="text-lg font-medium mb-3">Assessment Details</h2>
+            <div className="space-y-2">
+              {Array.isArray(courseData.assessment_details) ? (
+                courseData.assessment_details.map((assessment, idx) => (
+                  <div key={idx} className="bg-white p-3 rounded text-sm border">
+                    {typeof assessment === 'string' ? assessment : JSON.stringify(assessment)}
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Assessment information is not available in a readable format.
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Location Information Section */}
+        {courseData.instructors && courseData.instructors.length > 0 && (
+          <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <h2 className="text-lg font-medium">Locations</h2>
+            </div>
+            <div className="space-y-1">
+              {courseData.instructors.map((location, idx) => (
+                <p key={idx} className="text-sm">{location.name}</p>
+              ))}
+              <div className="mt-3">
+                <Button variant="outline" size="sm" asChild>
+                  <a 
+                    href="https://www.lmu.de/raumfinder/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center"
+                  >
+                    <MapPin size={14} className="mr-1.5" />
+                    Find Rooms
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* External links section */}
         <div className="mt-6 space-y-2">

@@ -73,13 +73,21 @@ export const fetchCourseDetails = async (courseId: string): Promise<Course | nul
         evaluation_method: data.evaluation_method || undefined,
         url: data.url || undefined,
         faculties: data.faculties || undefined,
-        // Include the new properties from database
         departments: data.departments || undefined,
         degree_programs: data.degree_programs || undefined,
         instructors: data.instructors || undefined,
         registration_periods: data.registration_periods || undefined,
         modules: data.modules || undefined,
         detail_url: data.detail_url || undefined,
+        // Additional fields
+        short_comment: data.short_comment || undefined,
+        long_text: data.long_text || undefined,
+        instructor_details: data.instructor_details || undefined,
+        institution_details: data.institution_details || undefined,
+        study_programs: data.study_programs || undefined,
+        module_details: data.module_details || undefined,
+        assessment_details: data.assessment_details || undefined,
+        calendar_links: data.calendar_links || undefined,
         // Parse schedule data properly
         schedule: parseScheduleData(data.schedule)
       };

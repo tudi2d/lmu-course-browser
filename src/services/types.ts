@@ -13,6 +13,18 @@ export interface Schedule {
   room_link: string;
 }
 
+export interface LocationInfo {
+  link: string;
+  name: string;
+  title: string;
+}
+
+export interface CalendarLink {
+  type?: string;
+  url?: string;
+  title?: string;
+}
+
 export interface Course {
   id?: string;
   name: string;
@@ -32,13 +44,20 @@ export interface Course {
   url?: string;
   schedule?: Schedule[];
   faculties?: string[];
-  // Add missing properties
   departments?: string[];
   degree_programs?: string[];
-  instructors?: string[];
+  instructors?: LocationInfo[];
   registration_periods?: any[];
   modules?: any[];
   detail_url?: string;
+  short_comment?: string;
+  long_text?: string;
+  instructor_details?: any[];
+  institution_details?: any[];
+  study_programs?: any[];
+  module_details?: any[];
+  assessment_details?: any[];
+  calendar_links?: CalendarLink[];
 }
 
 export interface CourseTreeItem {

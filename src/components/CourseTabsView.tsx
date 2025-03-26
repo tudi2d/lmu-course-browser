@@ -35,11 +35,11 @@ const CourseTabsView: React.FC<CourseTabsViewProps> = ({
 
   return (
     <div className="flex flex-col h-full w-full">
-      <div className="border-b flex">
+      <div className="border-b flex overflow-x-auto">
         {openTabs.map((tab, index) => (
           <div
             key={tab.course_id}
-            className={`border-r flex items-center cursor-pointer px-4 py-2 text-sm ${
+            className={`border-r flex items-center cursor-pointer px-4 py-2 text-sm whitespace-nowrap ${
               activeTabIndex === index
                 ? "bg-white font-medium"
                 : "bg-gray-50 text-muted-foreground hover:bg-gray-100"
@@ -78,6 +78,6 @@ const CourseTabsView: React.FC<CourseTabsViewProps> = ({
       </div>
     </div>
   );
-};
+}
 
 export default CourseTabsView;
