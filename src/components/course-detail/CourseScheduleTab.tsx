@@ -26,9 +26,12 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
 
   // Render for new schedule format (with day, time, rooms, etc.)
   const renderNewScheduleFormat = () => {
+    // Safely cast to ScheduleItem array since we've verified it's not the old format
+    const scheduleItems = courseData.schedule as ScheduleItem[];
+    
     return (
       <div className="space-y-4">
-        {courseData.schedule?.map((item: ScheduleItem, index) => (
+        {scheduleItems.map((item, index) => (
           <div key={index} className="bg-gray-50 rounded-lg border p-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between mb-3">
               <div>
@@ -117,6 +120,9 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
 
   // Render for old schedule format (with first_date, last_date, etc.)
   const renderOldScheduleFormat = () => {
+    // Safely cast to Schedule array since we've verified it's the old format
+    const scheduleItems = courseData.schedule as Schedule[];
+    
     return (
       <Table>
         <TableHeader>
@@ -128,10 +134,7 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
           </TableRow>
         </TableHeader>
         <TableBody>
-          {courseData.schedule?.map((item, index) => {
-            // Only proceed if this is the old format we expect
-            if (!isOldScheduleFormat(item)) return null;
-            
+          {scheduleItems.map((item, index) => {
             const firstDate = item.first_date ? new Date(item.first_date) : null;
             const formattedFirstDate = firstDate ? firstDate.toLocaleDateString() : item.first_date;
             
@@ -172,3 +175,4 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
 
   return isOldFormat ? renderOldScheduleFormat() : renderNewScheduleFormat();
 };
+
