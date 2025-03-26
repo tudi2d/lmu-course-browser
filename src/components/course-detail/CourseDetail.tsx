@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 import { Course } from "@/services/types";
-import { toggleFavorite } from "@/services/favoriteService";
+import { toggleFavorite } from "@/services/favorites/favoriteService";
 import { CourseInfoCards } from "./CourseInfoCards";
 import { CourseTabsSection } from "./CourseTabsSection";
 import { CourseAdditionalInfo } from "./CourseAdditionalInfo";
