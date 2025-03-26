@@ -2,6 +2,28 @@
 import { Json } from '@/integrations/supabase/types';
 
 // Define types needed by components
+export interface ScheduleRoom {
+  name: string;
+  floor_plan?: string;
+  details_url?: string;
+}
+
+export interface ScheduleDuration {
+  start: string;
+  end?: string | null;
+}
+
+export interface ScheduleItem {
+  day: string;
+  time: string;
+  rhythm?: string;
+  notes?: string | null;
+  rooms?: ScheduleRoom[];
+  duration?: ScheduleDuration;
+  instructor?: string | null;
+  cancelled_dates?: string | null;
+}
+
 export interface Schedule {
   day: string;
   time_start: string;
@@ -25,6 +47,43 @@ export interface CalendarLink {
   title?: string;
 }
 
+export interface InstructorDetail {
+  id?: string;
+  name?: string;
+  url?: string;
+}
+
+export interface InstitutionDetail {
+  id?: string;
+  name?: string;
+  professor?: string;
+  details_url?: string;
+}
+
+export interface StudyProgram {
+  ects?: string | null;
+  type?: string | null;
+  degree?: string;
+  program?: string;
+}
+
+export interface ModuleDetail {
+  ects?: string | null;
+  type?: string;
+  degree?: string;
+  program?: string;
+  version?: string;
+  details_url?: string;
+  exam_number?: string;
+  module_name?: string;
+  module_number?: string;
+}
+
+export interface AssessmentDetail {
+  type?: string;
+  period?: string;
+}
+
 export interface Course {
   id?: string;
   name: string;
@@ -42,7 +101,7 @@ export interface Course {
   registration_info?: string;
   evaluation_method?: string;
   url?: string;
-  schedule?: Schedule[];
+  schedule?: Schedule[] | ScheduleItem[];
   faculties?: string[];
   departments?: string[];
   degree_programs?: string[];
@@ -52,11 +111,11 @@ export interface Course {
   detail_url?: string;
   short_comment?: string;
   long_text?: string;
-  instructor_details?: any[];
-  institution_details?: any[];
-  study_programs?: any[];
-  module_details?: any[];
-  assessment_details?: any[];
+  instructor_details?: InstructorDetail | InstructorDetail[];
+  institution_details?: InstitutionDetail | InstitutionDetail[];
+  study_programs?: StudyProgram[];
+  module_details?: ModuleDetail[];
+  assessment_details?: AssessmentDetail | string | string[];
   calendar_links?: CalendarLink[];
 }
 

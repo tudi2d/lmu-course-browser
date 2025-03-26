@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Course } from "@/services/types";
+import { Course, ScheduleItem } from "@/services/types";
 
 interface CourseScheduleTabProps {
   courseData: Course;
@@ -25,6 +25,79 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
     );
   }
 
+  // Determine if we're using the old or new schedule format
+  const isNewScheduleFormat = 'time' in (courseData.schedule[0] || {});
+  
+  if (isNewScheduleFormat) {
+    const scheduleItems = courseData.schedule as ScheduleItem[];
+    
+    return (
+      <div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Day</TableHead>
+              <TableHead>Time</TableHead>
+              <TableHead>Room</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {scheduleItems.map((item, index) => (
+              <TableRow key={index}>
+                <TableCell>{item.day || "—"}</TableCell>
+                <TableCell>
+                  {item.time} {item.rhythm && `(${item.rhythm})`}
+                </TableCell>
+                <TableCell>
+                  {item.rooms && item.rooms.length > 0 
+                    ? item.rooms.map(room => room.name).join(", ") 
+                    : "—"}
+                </TableCell>
+                <TableCell>
+                  {courseData.calendar_links && courseData.calendar_links[index]?.url ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-tree-accent"
+                      asChild
+                    >
+                      <a 
+                        href={courseData.calendar_links[index].url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                      >
+                        <Calendar size={14} className="mr-1.5" />
+                        iCal
+                      </a>
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground"
+                      disabled
+                    >
+                      <Calendar size={14} className="mr-1.5" />
+                      No iCal
+                    </Button>
+                  )}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+
+        <div className="mt-4 text-sm text-muted-foreground">
+          {scheduleItems[0].duration?.start && (
+            <p>Duration: {scheduleItems[0].duration.start}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+  
+  // Use old schedule format rendering
   return (
     <div>
       <Table>
@@ -37,7 +110,7 @@ export const CourseScheduleTab: React.FC<CourseScheduleTabProps> = ({ courseData
           </TableRow>
         </TableHeader>
         <TableBody>
-          {courseData.schedule.map((item, index) => (
+          {courseData.schedule.map((item: any, index) => (
             <TableRow key={index}>
               <TableCell>{item.day || "—"}</TableCell>
               <TableCell>

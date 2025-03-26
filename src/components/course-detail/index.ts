@@ -8,3 +8,4 @@ export * from './CourseDetailsTab';
 export * from './CourseAdditionalInfo';
 export * from './CourseLocationInfo';
 export * from './CourseExternalLinks';
+export * from './GenericJSONTab';

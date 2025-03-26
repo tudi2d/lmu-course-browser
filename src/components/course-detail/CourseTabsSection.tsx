@@ -11,21 +11,51 @@ interface CourseTabsSectionProps {
 }
 
 export const CourseTabsSection: React.FC<CourseTabsSectionProps> = ({ courseData }) => {
+  // We need at least one section with data to show the tabs
+  const hasScheduleData = courseData.schedule && Array.isArray(courseData.schedule) && courseData.schedule.length > 0;
+  const hasInstructorDetails = courseData.instructor_details && (
+    Array.isArray(courseData.instructor_details) ? 
+    courseData.instructor_details.length > 0 : 
+    Object.keys(courseData.instructor_details).length > 0
+  );
+  const hasInstitutionDetails = courseData.institution_details && (
+    Array.isArray(courseData.institution_details) ? 
+    courseData.institution_details.length > 0 : 
+    Object.keys(courseData.institution_details).length > 0
+  );
+  const hasModuleDetails = courseData.module_details && Array.isArray(courseData.module_details) && courseData.module_details.length > 0;
+  const hasStudyPrograms = courseData.study_programs && Array.isArray(courseData.study_programs) && courseData.study_programs.length > 0;
+
+  // Don't show tabs if there's no content to display
+  if (!hasScheduleData && !hasInstructorDetails && !hasInstitutionDetails && !hasModuleDetails && !hasStudyPrograms) {
+    return null;
+  }
+
+  // Determine default active tab based on available data
+  let defaultTab = "details";
+  if (!courseData.literature && !courseData.requirements && !courseData.target_group && !courseData.registration_info && !courseData.evaluation_method) {
+    if (hasScheduleData) defaultTab = "schedule";
+    else if (hasInstructorDetails) defaultTab = "instructors";
+    else if (hasInstitutionDetails) defaultTab = "institutions";
+    else if (hasModuleDetails) defaultTab = "modules";
+    else if (hasStudyPrograms) defaultTab = "programs";
+  }
+
   return (
-    <Tabs defaultValue="details" className="mb-8">
+    <Tabs defaultValue={defaultTab} className="mb-8">
       <TabsList>
         <TabsTrigger value="details">Details</TabsTrigger>
-        <TabsTrigger value="schedule">Schedule</TabsTrigger>
-        {courseData.instructor_details && (
+        {hasScheduleData && <TabsTrigger value="schedule">Schedule</TabsTrigger>}
+        {hasInstructorDetails && (
           <TabsTrigger value="instructors">Instructors</TabsTrigger>
         )}
-        {courseData.institution_details && (
+        {hasInstitutionDetails && (
           <TabsTrigger value="institutions">Institutions</TabsTrigger>
         )}
-        {courseData.module_details && (
+        {hasModuleDetails && (
           <TabsTrigger value="modules">Modules</TabsTrigger>
         )}
-        {courseData.study_programs && (
+        {hasStudyPrograms && (
           <TabsTrigger value="programs">Study Programs</TabsTrigger>
         )}
       </TabsList>
@@ -36,12 +66,14 @@ export const CourseTabsSection: React.FC<CourseTabsSectionProps> = ({ courseData
       </TabsContent>
 
       {/* Schedule Tab */}
-      <TabsContent value="schedule" className="pt-4">
-        <CourseScheduleTab courseData={courseData} />
-      </TabsContent>
+      {hasScheduleData && (
+        <TabsContent value="schedule" className="pt-4">
+          <CourseScheduleTab courseData={courseData} />
+        </TabsContent>
+      )}
 
       {/* Instructors Tab */}
-      {courseData.instructor_details && (
+      {hasInstructorDetails && (
         <TabsContent value="instructors" className="pt-4">
           <GenericJSONTab 
             title="Instructors" 
@@ -51,7 +83,7 @@ export const CourseTabsSection: React.FC<CourseTabsSectionProps> = ({ courseData
       )}
       
       {/* Institutions Tab */}
-      {courseData.institution_details && (
+      {hasInstitutionDetails && (
         <TabsContent value="institutions" className="pt-4">
           <GenericJSONTab 
             title="Institutions" 
@@ -61,7 +93,7 @@ export const CourseTabsSection: React.FC<CourseTabsSectionProps> = ({ courseData
       )}
       
       {/* Modules Tab */}
-      {courseData.module_details && (
+      {hasModuleDetails && (
         <TabsContent value="modules" className="pt-4">
           <GenericJSONTab 
             title="Module Details" 
@@ -71,7 +103,7 @@ export const CourseTabsSection: React.FC<CourseTabsSectionProps> = ({ courseData
       )}
       
       {/* Study Programs Tab */}
-      {courseData.study_programs && (
+      {hasStudyPrograms && (
         <TabsContent value="programs" className="pt-4">
           <GenericJSONTab 
             title="Study Programs" 
