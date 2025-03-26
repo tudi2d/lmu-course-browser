@@ -33,9 +33,9 @@ export const CalendarLinks: React.FC<CalendarLinksProps> = ({
               rel="noopener noreferrer"
               className="inline-flex"
             >
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button variant="outline" size="sm" className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
-                iCal
+                <span>iCal</span>
               </Button>
             </a>
           )

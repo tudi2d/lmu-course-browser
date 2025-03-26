@@ -17,7 +17,7 @@ export const ScheduleTable: React.FC<ScheduleTableProps> = ({
   isOldFormat 
 }) => {
   return isOldFormat 
-    ? renderOldScheduleFormat(scheduleItems as Schedule[]) 
+    ? renderOldScheduleFormat(scheduleItems as Schedule[], calendarLinks) 
     : renderNewScheduleFormat(scheduleItems as ScheduleItem[], calendarLinks);
 };
 
@@ -39,7 +39,7 @@ const renderNewScheduleFormat = (scheduleItems: ScheduleItem[], calendarLinks?: 
         {scheduleItems.map((item, index) => {
           // Find corresponding calendar link if available
           const calendarLink = calendarLinks && 
-                            calendarLinks[index] ? 
+                            calendarLinks.length > index ? 
                             calendarLinks[index] : null;
           
           return (
@@ -104,7 +104,7 @@ const renderNewScheduleFormat = (scheduleItems: ScheduleItem[], calendarLinks?: 
   );
 };
 
-const renderOldScheduleFormat = (scheduleItems: Schedule[]) => {
+const renderOldScheduleFormat = (scheduleItems: Schedule[], calendarLinks?: CalendarLink[]) => {
   return (
     <Table>
       <TableHeader>
@@ -122,6 +122,11 @@ const renderOldScheduleFormat = (scheduleItems: Schedule[]) => {
           // Format dates for readability
           const formattedFirstDate = item.first_date ? new Date(item.first_date).toLocaleDateString() : item.first_date;
           const formattedLastDate = item.last_date ? new Date(item.last_date).toLocaleDateString() : item.last_date;
+          
+          // Find corresponding calendar link if available
+          const calendarLink = calendarLinks && 
+                            calendarLinks.length > index ? 
+                            calendarLinks[index] : null;
           
           return (
             <TableRow key={index}>
@@ -149,18 +154,20 @@ const renderOldScheduleFormat = (scheduleItems: Schedule[]) => {
                 )}
               </TableCell>
               <TableCell>
-                {item.calendar_link && (
+                {(calendarLink && calendarLink.url) || item.calendar_link ? (
                   <a
-                    href={item.calendar_link}
+                    href={(calendarLink && calendarLink.url) || item.calendar_link}
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Download iCal"
+                    title="Download iCal"
                   >
-                    <Button variant="ghost" size="sm" className="gap-2 h-8 w-8 p-0">
+                    <Button variant="ghost" size="sm" className="flex items-center gap-1 p-1">
                       <Calendar className="h-4 w-4" />
+                      <span>iCal</span>
                     </Button>
                   </a>
-                )}
+                ) : null}
               </TableCell>
             </TableRow>
           );
