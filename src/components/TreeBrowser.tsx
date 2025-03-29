@@ -10,17 +10,23 @@ import { useFilteredTree } from "@/hooks/use-filtered-tree";
 import CourseSidebar from "./CourseSidebar";
 import CourseTabsView from "./CourseTabsView";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import CourseSearch from "./CourseSearch";
 import { toast } from "@/components/ui/use-toast";
 import { CourseNode } from "@/services/courseService";
 
-const TreeBrowser: React.FC = () => {
+interface TreeBrowserProps {
+  mobileDrawerOpen?: boolean;
+  setMobileDrawerOpen?: (open: boolean) => void;
+}
+
+const TreeBrowser: React.FC<TreeBrowserProps> = ({ 
+  mobileDrawerOpen = false, 
+  setMobileDrawerOpen = () => {}
+}) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isMobile = useIsMobile();
   const [courseNames, setCourseNames] = useState<Record<string, string>>({});
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   
   // Use custom hooks to manage different aspects of state
   const { treeData, loading: treeLoading } = useCourseTree();
@@ -81,7 +87,7 @@ const TreeBrowser: React.FC = () => {
     if (isMobile && activeTabIndex !== -1 && mobileDrawerOpen) {
       setMobileDrawerOpen(false);
     }
-  }, [activeTabIndex, isMobile, mobileDrawerOpen]);
+  }, [activeTabIndex, isMobile, mobileDrawerOpen, setMobileDrawerOpen]);
   
   // Handle toggling favorite status
   const handleToggleFavorite = useCallback(async (courseId: string, isFavorited: boolean) => {
@@ -104,45 +110,6 @@ const TreeBrowser: React.FC = () => {
 
   // Loading state
   const loading = treeLoading || favoritesLoading;
-
-  // Mobile drawer component
-  const MobileSidebar = () => (
-    <Drawer open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
-      <DrawerTrigger asChild>
-        <Button 
-          variant="outline" 
-          size="icon" 
-          className="fixed bottom-4 right-4 z-50 rounded-full shadow-lg md:hidden"
-        >
-          <Menu size={20} />
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent className="h-[80vh]">
-        <div className="h-full overflow-hidden">
-          <CourseSidebar
-            loading={loading}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            clearSearch={clearSearch}
-            filteredTreeData={filteredTreeData}
-            expandedNodes={expandedNodes}
-            openTabs={openTabs}
-            favorites={favorites}
-            courseNames={courseNames}
-            handleNodeToggle={handleNodeToggle}
-            handleOpenCourse={(courseId, courseName) => {
-              handleOpenCourse(courseId, courseName);
-              setMobileDrawerOpen(false);
-            }}
-            user={user}
-            isMobile={isMobile}
-          />
-        </div>
-      </DrawerContent>
-    </Drawer>
-  );
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
@@ -220,7 +187,34 @@ const TreeBrowser: React.FC = () => {
       </div>
       
       {/* Mobile drawer sidebar */}
-      {isMobile && <MobileSidebar />}
+      {isMobile && (
+        <Drawer open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
+          <DrawerContent className="h-[80vh]">
+            <div className="h-full overflow-hidden">
+              <CourseSidebar
+                loading={loading}
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                clearSearch={clearSearch}
+                filteredTreeData={filteredTreeData}
+                expandedNodes={expandedNodes}
+                openTabs={openTabs}
+                favorites={favorites}
+                courseNames={courseNames}
+                handleNodeToggle={handleNodeToggle}
+                handleOpenCourse={(courseId, courseName) => {
+                  handleOpenCourse(courseId, courseName);
+                  setMobileDrawerOpen(false);
+                }}
+                user={user}
+                isMobile={isMobile}
+              />
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
     </div>
   );
 };

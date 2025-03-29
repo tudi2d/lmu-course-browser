@@ -52,6 +52,17 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
       return isNodeRelevantToSearch(child, searchQuery);
     }) : [];
 
+  // Handle node click - different behavior for courses vs folders
+  const handleNodeClick = () => {
+    if (isCourse && node.value) {
+      // If it's a course (leaf node), open it
+      handleOpenCourse(node.value, node.name);
+    } else if (hasChildren) {
+      // If it's a folder (has children), toggle expansion
+      handleNodeToggle(nodePath);
+    }
+  };
+
   return (
     <React.Fragment key={nodePath}>
       <TreeNode
@@ -62,14 +73,8 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
         isActive={isCourse && openTabs.some((tab) => tab.course_id === node.value)}
         isHighlighted={isMatched}
         isFavorite={isFavorite}
-        onToggle={() => handleNodeToggle(nodePath)}
-        onClick={() => {
-          if (isCourse && node.value) {
-            handleOpenCourse(node.value, node.name);
-          } else {
-            handleNodeToggle(nodePath);
-          }
-        }}
+        onToggle={() => hasChildren && handleNodeToggle(nodePath)}
+        onClick={handleNodeClick}
       >
         {isExpanded &&
           hasChildren &&

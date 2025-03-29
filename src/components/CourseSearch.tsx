@@ -52,7 +52,7 @@ const CourseSearch: React.FC<CourseSearchProps> = ({
             placeholder="Search courses..." 
             value={inputValue} 
             onChange={handleInputChange} 
-            className={`w-full pl-9 pr-9 py-2 ${isMobile ? 'h-6 text-sm' : ''}`}
+            className={`w-full pl-9 pr-9 ${isMobile ? 'h-6 text-sm' : ''}`}
             style={isMobile ? { height: '1.5em' } : {}}
           />
           {inputValue && (
