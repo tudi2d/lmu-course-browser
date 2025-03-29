@@ -1,19 +1,18 @@
 
 import React, { useState, useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCourseTree } from "@/hooks/use-course-tree";
 import { useCourseFavorites } from "@/hooks/use-course-favorites";
 import { useCourseSearch } from "@/hooks/use-course-search";
 import { useCourseTabs } from "@/hooks/use-course-tabs";
 import { useFilteredTree } from "@/hooks/use-filtered-tree";
-import CourseSidebar from "./CourseSidebar";
-import CourseTabsView from "./CourseTabsView";
-import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent } from "@/components/ui/drawer";
-import CourseSearch from "./CourseSearch";
-import { toast } from "@/components/ui/use-toast";
 import { CourseNode } from "@/services/courseService";
+
+// Import our new components
+import MobileSearchBar from "./sidebar/MobileSearchBar";
+import MobileSidebar from "./sidebar/MobileSidebar";
+import DesktopSidebar from "./sidebar/DesktopSidebar";
+import ContentArea from "./content/ContentArea";
 
 interface TreeBrowserProps {
   mobileDrawerOpen?: boolean;
@@ -35,7 +34,6 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({
     loading: favoritesLoading, 
     addFavorite, 
     removeFavorite,
-    isFavorite, 
     user 
   } = useCourseFavorites();
 
@@ -56,7 +54,6 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({
       
       const names = extractCourseNames(treeData, {});
       setCourseNames(names);
-      console.log("Extracted course names:", names);
     }
   }, [treeData]);
   
@@ -103,27 +100,20 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
-      {/* Mobile search bar only */}
+      {/* Mobile search bar */}
       {isMobile && (
-        <div className="border-b border-muted">
-          <CourseSearch
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            clearSearch={clearSearch}
-            isMobile={true}
-          />
-        </div>
+        <MobileSearchBar 
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          clearSearch={clearSearch}
+        />
       )}
 
       {/* Desktop sidebar */}
-      <div
-        className={`border-r border-muted transition-all duration-300 ease-in-out ${
-          sidebarCollapsed
-            ? "w-0"
-            : "w-full md:w-1/2 lg:w-1/3"
-        } ${isMobile ? "hidden" : "flex"}`}
-      >
-        <CourseSidebar
+      {!isMobile && (
+        <DesktopSidebar
+          sidebarCollapsed={sidebarCollapsed}
+          setSidebarCollapsed={setSidebarCollapsed}
           loading={loading}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -139,71 +129,40 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({
           handleOpenCourse={handleOpenCourse}
           user={user}
         />
-      </div>
-
-      {/* Toggle sidebar button for desktop */}
-      {!isMobile && (
-        <button
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white shadow-md p-1.5 rounded-r-sm hover:bg-muted transition-colors"
-        >
-          {sidebarCollapsed ? (
-            <ChevronRight size={16} className="text-tree-gray" />
-          ) : (
-            <ChevronLeft size={16} className="text-tree-gray" />
-          )}
-        </button>
       )}
 
       {/* Content area */}
-      <div
-        className={`bg-white transition-all duration-300 ${
-          sidebarCollapsed
-            ? "w-full"
-            : isMobile
-            ? "w-full"
-            : "w-full md:w-1/2 lg:w-2/3"
-        } flex flex-col`}
-      >
-        <CourseTabsView
-          openTabs={openTabs}
-          activeTabIndex={activeTabIndex}
-          setActiveTabIndex={setActiveTabIndex}
-          handleCloseTab={handleCloseTab}
-          favorites={favorites}
-          onToggleFavorite={handleToggleFavorite}
-          isMobile={isMobile}
-        />
-      </div>
+      <ContentArea
+        sidebarCollapsed={sidebarCollapsed}
+        isMobile={isMobile}
+        openTabs={openTabs}
+        activeTabIndex={activeTabIndex}
+        setActiveTabIndex={setActiveTabIndex}
+        handleCloseTab={handleCloseTab}
+        favorites={favorites}
+        onToggleFavorite={handleToggleFavorite}
+      />
       
       {/* Mobile drawer sidebar */}
       {isMobile && (
-        <Drawer open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
-          <DrawerContent className="h-[80vh] px-0 pt-0 bg-white">
-            <div className="h-full overflow-hidden">
-              <CourseSidebar
-                loading={loading}
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                clearSearch={clearSearch}
-                filteredTreeData={filteredTreeData}
-                expandedNodes={expandedNodes}
-                openTabs={openTabs}
-                favorites={favorites}
-                courseNames={courseNames}
-                handleNodeToggle={handleNodeToggle}
-                handleOpenCourse={(courseId, courseName) => {
-                  handleOpenCourse(courseId, courseName);
-                  setMobileDrawerOpen(false);
-                }}
-                user={user}
-                isMobile={isMobile}
-              />
-            </div>
-          </DrawerContent>
-        </Drawer>
+        <MobileSidebar
+          mobileDrawerOpen={mobileDrawerOpen}
+          setMobileDrawerOpen={setMobileDrawerOpen}
+          loading={loading}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          clearSearch={clearSearch}
+          filteredTreeData={filteredTreeData}
+          expandedNodes={expandedNodes}
+          openTabs={openTabs}
+          favorites={favorites}
+          courseNames={courseNames}
+          handleNodeToggle={handleNodeToggle}
+          handleOpenCourse={handleOpenCourse}
+          user={user}
+        />
       )}
     </div>
   );
