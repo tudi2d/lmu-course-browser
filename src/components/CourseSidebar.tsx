@@ -23,6 +23,7 @@ interface CourseSidebarProps {
   handleNodeToggle: (nodePath: string) => void;
   handleOpenCourse: (courseId: string, courseName: string) => void;
   user: any;
+  isMobile?: boolean;
 }
 
 const CourseSidebar: React.FC<CourseSidebarProps> = ({
@@ -40,6 +41,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   handleNodeToggle,
   handleOpenCourse,
   user,
+  isMobile = false,
 }) => {
   // Debug favorites data directly
   useEffect(() => {
@@ -55,6 +57,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         clearSearch={clearSearch}
+        isMobile={isMobile}
       />
 
       <Tabs

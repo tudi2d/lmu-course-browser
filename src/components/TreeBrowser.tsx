@@ -1,5 +1,6 @@
+
 import React, { useState, useCallback, useEffect } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Menu, X } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCourseTree } from "@/hooks/use-course-tree";
 import { useCourseFavorites } from "@/hooks/use-course-favorites";
@@ -8,6 +9,10 @@ import { useCourseTabs } from "@/hooks/use-course-tabs";
 import { useFilteredTree } from "@/hooks/use-filtered-tree";
 import CourseSidebar from "./CourseSidebar";
 import CourseTabsView from "./CourseTabsView";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
+import CourseSearch from "./CourseSearch";
 import { toast } from "@/components/ui/use-toast";
 import { CourseNode } from "@/services/courseService";
 
@@ -15,6 +20,7 @@ const TreeBrowser: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const isMobile = useIsMobile();
   const [courseNames, setCourseNames] = useState<Record<string, string>>({});
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   
   // Use custom hooks to manage different aspects of state
   const { treeData, loading: treeLoading } = useCourseTree();
@@ -69,6 +75,13 @@ const TreeBrowser: React.FC = () => {
     handleCloseTab, 
     setActiveTabIndex 
   } = useCourseTabs();
+
+  // Close mobile drawer when a course is selected
+  useEffect(() => {
+    if (isMobile && activeTabIndex !== -1 && mobileDrawerOpen) {
+      setMobileDrawerOpen(false);
+    }
+  }, [activeTabIndex, isMobile, mobileDrawerOpen]);
   
   // Handle toggling favorite status
   const handleToggleFavorite = useCallback(async (courseId: string, isFavorited: boolean) => {
@@ -92,16 +105,66 @@ const TreeBrowser: React.FC = () => {
   // Loading state
   const loading = treeLoading || favoritesLoading;
 
+  // Mobile drawer component
+  const MobileSidebar = () => (
+    <Drawer open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
+      <DrawerTrigger asChild>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="fixed bottom-4 right-4 z-50 rounded-full shadow-lg md:hidden"
+        >
+          <Menu size={20} />
+        </Button>
+      </DrawerTrigger>
+      <DrawerContent className="h-[80vh]">
+        <div className="h-full overflow-hidden">
+          <CourseSidebar
+            loading={loading}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            clearSearch={clearSearch}
+            filteredTreeData={filteredTreeData}
+            expandedNodes={expandedNodes}
+            openTabs={openTabs}
+            favorites={favorites}
+            courseNames={courseNames}
+            handleNodeToggle={handleNodeToggle}
+            handleOpenCourse={(courseId, courseName) => {
+              handleOpenCourse(courseId, courseName);
+              setMobileDrawerOpen(false);
+            }}
+            user={user}
+            isMobile={isMobile}
+          />
+        </div>
+      </DrawerContent>
+    </Drawer>
+  );
+
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
+      {/* Mobile search bar only */}
+      {isMobile && (
+        <div className="border-b border-muted">
+          <CourseSearch
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            clearSearch={clearSearch}
+            isMobile={true}
+          />
+        </div>
+      )}
+
+      {/* Desktop sidebar */}
       <div
         className={`border-r border-muted transition-all duration-300 ease-in-out ${
           sidebarCollapsed
             ? "w-0"
-            : isMobile
-            ? "w-full h-1/2"
             : "w-full md:w-1/2 lg:w-1/3"
-        } ${isMobile && activeTabIndex !== -1 ? "hidden" : "flex"}`}
+        } ${isMobile ? "hidden" : "flex"}`}
       >
         <CourseSidebar
           loading={loading}
@@ -121,6 +184,7 @@ const TreeBrowser: React.FC = () => {
         />
       </div>
 
+      {/* Toggle sidebar button for desktop */}
       {!isMobile && (
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -134,14 +198,15 @@ const TreeBrowser: React.FC = () => {
         </button>
       )}
 
+      {/* Content area */}
       <div
         className={`bg-white transition-all duration-300 ${
           sidebarCollapsed
             ? "w-full"
             : isMobile
-            ? "w-full h-1/2"
+            ? "w-full"
             : "w-full md:w-1/2 lg:w-2/3"
-        } ${isMobile && activeTabIndex === -1 ? "hidden" : "flex flex-col"}`}
+        } flex flex-col`}
       >
         <CourseTabsView
           openTabs={openTabs}
@@ -153,6 +218,9 @@ const TreeBrowser: React.FC = () => {
           isMobile={isMobile}
         />
       </div>
+      
+      {/* Mobile drawer sidebar */}
+      {isMobile && <MobileSidebar />}
     </div>
   );
 };
