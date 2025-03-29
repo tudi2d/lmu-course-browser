@@ -8,7 +8,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Navbar />
-      <div className="flex-1">
+      <div className="flex-1 overflow-hidden">
         <TreeBrowser />
       </div>
       <Footer />

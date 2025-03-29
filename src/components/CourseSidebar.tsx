@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import CourseSearch from "./CourseSearch";
 import CourseTreeRenderer from "./CourseTreeRenderer";
 import FavoritesList from "./FavoritesList";
@@ -72,63 +73,65 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
         </TabsList>
       </Tabs>
 
-      <div className="overflow-y-auto h-full relative">
-        {loading ? (
-          <div className="p-4 text-sm text-muted-foreground">
-            Loading courses...
-          </div>
-        ) : (
-          <>
-            {activeTab === "favorites" && !user && (
-              <div className="p-4 text-sm bg-muted/30 border-b">
-                <p className="text-muted-foreground mb-2">
-                  <strong>Note:</strong> Sign in to save your favorites permanently.
-                </p>
-                <Button 
-                  onClick={() => {
-                    const signInButton = document.querySelector('[aria-label="Sign In"]');
-                    if (signInButton && 'click' in signInButton) {
-                      (signInButton as HTMLElement).click();
-                    }
-                  }}
-                  className="gap-2"
-                  size="sm"
-                  variant="outline"
-                >
-                  <User size={14} />
-                  Sign In
-                </Button>
-              </div>
-            )}
-            
-            {activeTab === "favorites" ? (
-              <FavoritesList
-                favorites={favorites}
-                courseNames={courseNames}
-                openTabs={openTabs}
-                handleOpenCourse={handleOpenCourse}
-              />
-            ) : filteredTreeData && filteredTreeData.children && filteredTreeData.children.length > 0 ? (
-              filteredTreeData.children.map((childNode) => (
-                <CourseTreeRenderer
-                  key={childNode.name}
-                  node={childNode}
-                  expandedNodes={expandedNodes}
-                  searchQuery={searchQuery}
-                  openTabs={openTabs}
+      <ScrollArea className="flex-grow h-full">
+        <div className="h-full">
+          {loading ? (
+            <div className="p-4 text-sm text-muted-foreground">
+              Loading courses...
+            </div>
+          ) : (
+            <>
+              {activeTab === "favorites" && !user && (
+                <div className="p-4 text-sm bg-muted/30 border-b">
+                  <p className="text-muted-foreground mb-2">
+                    <strong>Note:</strong> Sign in to save your favorites permanently.
+                  </p>
+                  <Button 
+                    onClick={() => {
+                      const signInButton = document.querySelector('[aria-label="Sign In"]');
+                      if (signInButton && 'click' in signInButton) {
+                        (signInButton as HTMLElement).click();
+                      }
+                    }}
+                    className="gap-2"
+                    size="sm"
+                    variant="outline"
+                  >
+                    <User size={14} />
+                    Sign In
+                  </Button>
+                </div>
+              )}
+              
+              {activeTab === "favorites" ? (
+                <FavoritesList
                   favorites={favorites}
-                  handleNodeToggle={handleNodeToggle}
+                  courseNames={courseNames}
+                  openTabs={openTabs}
                   handleOpenCourse={handleOpenCourse}
                 />
-              ))
-            ) : (
-              <div className="p-4 text-sm text-muted-foreground">
-                No courses found
-              </div>
-            )}
-          </>
-        )}
-      </div>
+              ) : filteredTreeData && filteredTreeData.children && filteredTreeData.children.length > 0 ? (
+                filteredTreeData.children.map((childNode) => (
+                  <CourseTreeRenderer
+                    key={childNode.name}
+                    node={childNode}
+                    expandedNodes={expandedNodes}
+                    searchQuery={searchQuery}
+                    openTabs={openTabs}
+                    favorites={favorites}
+                    handleNodeToggle={handleNodeToggle}
+                    handleOpenCourse={handleOpenCourse}
+                  />
+                ))
+              ) : (
+                <div className="p-4 text-sm text-muted-foreground">
+                  No courses found
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </ScrollArea>
     </div>
   );
 };
