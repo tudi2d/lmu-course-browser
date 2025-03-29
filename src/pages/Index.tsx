@@ -6,7 +6,7 @@ import Navbar from '../components/Navbar';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="flex flex-col h-screen overflow-hidden bg-white">
       <Navbar />
       <div className="flex-1 overflow-hidden">
         <TreeBrowser />

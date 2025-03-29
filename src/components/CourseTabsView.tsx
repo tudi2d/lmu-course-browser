@@ -63,7 +63,7 @@ const CourseTabsView: React.FC<CourseTabsViewProps> = ({
         </div>
       </ScrollArea>
 
-      <div className="flex-grow h-full overflow-hidden relative">
+      <div className={`flex-grow h-full overflow-hidden relative ${isMobile ? 'max-h-[50vh]' : ''}`}>
         {openTabs.map((tab, index) => (
           <div
             key={tab.course_id}

@@ -42,14 +42,6 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   handleOpenCourse,
   user,
 }) => {
-  // Debug favorites data directly
-  useEffect(() => {
-    if (activeTab === "favorites") {
-      console.log("Favorites tab selected with favorites:", favorites);
-      console.log("Filtered tree data:", filteredTreeData);
-    }
-  }, [activeTab, favorites, filteredTreeData]);
-
   return (
     <div className="flex flex-col h-full w-full">
       <CourseSearch
@@ -73,7 +65,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
         </TabsList>
       </Tabs>
 
-      <ScrollArea className="flex-grow h-full">
+      <ScrollArea className="flex-grow overflow-y-auto relative h-[calc(100%-88px)]">
         <div className="h-full">
           {loading ? (
             <div className="p-4 text-sm text-muted-foreground">
