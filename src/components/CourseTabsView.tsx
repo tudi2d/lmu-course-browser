@@ -1,7 +1,6 @@
 
 import React from "react";
 import { X } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import CourseDetail from "./course-detail";
 import { Button } from "@/components/ui/button";
 
@@ -36,32 +35,30 @@ const CourseTabsView: React.FC<CourseTabsViewProps> = ({
 
   return (
     <div className="flex flex-col h-full w-full">
-      <ScrollArea className="border-b flex overflow-x-auto">
-        <div className="flex min-w-full">
-          {openTabs.map((tab, index) => (
-            <div
-              key={tab.course_id}
-              className={`border-r flex items-center cursor-pointer px-4 py-2 text-sm whitespace-nowrap ${
-                activeTabIndex === index
-                  ? "bg-white font-medium"
-                  : "bg-gray-50 text-muted-foreground hover:bg-gray-100"
-              }`}
-              onClick={() => setActiveTabIndex(index)}
+      <div className="border-b flex overflow-x-auto">
+        {openTabs.map((tab, index) => (
+          <div
+            key={tab.course_id}
+            className={`border-r flex items-center cursor-pointer px-4 py-2 text-sm whitespace-nowrap ${
+              activeTabIndex === index
+                ? "bg-white font-medium"
+                : "bg-gray-50 text-muted-foreground hover:bg-gray-100"
+            }`}
+            onClick={() => setActiveTabIndex(index)}
+          >
+            <span className="truncate max-w-[150px]">{tab.name}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="p-1 ml-2 h-auto w-auto"
+              onClick={(e) => handleCloseTab(index, e)}
+              aria-label={`Close ${tab.name} tab`}
             >
-              <span className="truncate max-w-[150px]">{tab.name}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="p-1 ml-2 h-auto w-auto"
-                onClick={(e) => handleCloseTab(index, e)}
-                aria-label={`Close ${tab.name} tab`}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        ))}
+      </div>
 
       <div className="flex-grow h-full overflow-hidden relative">
         {openTabs.map((tab, index) => (
@@ -71,13 +68,11 @@ const CourseTabsView: React.FC<CourseTabsViewProps> = ({
               activeTabIndex === index ? "block" : "hidden"
             }`}
           >
-            <ScrollArea className="h-full">
-              <CourseDetail 
-                course={tab.details} 
-                favorites={favorites}
-                onToggleFavorite={onToggleFavorite}
-              />
-            </ScrollArea>
+            <CourseDetail 
+              course={tab.details} 
+              favorites={favorites}
+              onToggleFavorite={onToggleFavorite}
+            />
           </div>
         ))}
       </div>

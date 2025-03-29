@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -7,7 +6,6 @@ import { useCourseFavorites } from "@/hooks/use-course-favorites";
 import { useCourseSearch } from "@/hooks/use-course-search";
 import { useCourseTabs } from "@/hooks/use-course-tabs";
 import { useFilteredTree } from "@/hooks/use-filtered-tree";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import CourseSidebar from "./CourseSidebar";
 import CourseTabsView from "./CourseTabsView";
 import { toast } from "@/components/ui/use-toast";
@@ -46,8 +44,13 @@ const TreeBrowser: React.FC = () => {
       
       const names = extractCourseNames(treeData, {});
       setCourseNames(names);
+      console.log("Extracted course names:", names);
     }
   }, [treeData]);
+  
+  useEffect(() => {
+    console.log("TreeBrowser - Current favorites:", favorites);
+  }, [favorites]);
   
   const { 
     searchQuery, 
@@ -91,15 +94,14 @@ const TreeBrowser: React.FC = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
-      {/* Course sidebar/list */}
       <div
         className={`border-r border-muted transition-all duration-300 ease-in-out ${
           sidebarCollapsed
             ? "w-0"
             : isMobile
-            ? "w-full h-1/2" // 50% height for mobile
+            ? "w-full h-1/2"
             : "w-full md:w-1/2 lg:w-1/3"
-        }`}
+        } ${isMobile && activeTabIndex !== -1 ? "hidden" : "flex"}`}
       >
         <CourseSidebar
           loading={loading}
@@ -116,11 +118,9 @@ const TreeBrowser: React.FC = () => {
           handleNodeToggle={handleNodeToggle}
           handleOpenCourse={handleOpenCourse}
           user={user}
-          isMobile={isMobile}
         />
       </div>
 
-      {/* Toggle sidebar button (only on desktop) */}
       {!isMobile && (
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -134,41 +134,25 @@ const TreeBrowser: React.FC = () => {
         </button>
       )}
 
-      {/* Course details view for mobile */}
-      {isMobile && activeTabIndex !== -1 && (
-        <div className="w-full h-1/2 border-t border-muted">
-          <CourseTabsView
-            openTabs={openTabs}
-            activeTabIndex={activeTabIndex}
-            setActiveTabIndex={setActiveTabIndex}
-            handleCloseTab={handleCloseTab}
-            favorites={favorites}
-            onToggleFavorite={handleToggleFavorite}
-            isMobile={isMobile}
-          />
-        </div>
-      )}
-      
-      {/* Desktop course view */}
-      {(!isMobile || (isMobile && activeTabIndex === -1)) && (
-        <div
-          className={`bg-white transition-all duration-300 ${
-            sidebarCollapsed
-              ? "w-full"
-              : "w-full md:w-1/2 lg:w-2/3"
-          } ${isMobile && activeTabIndex === -1 ? "h-0" : "flex flex-col"}`}
-        >
-          <CourseTabsView
-            openTabs={openTabs}
-            activeTabIndex={activeTabIndex}
-            setActiveTabIndex={setActiveTabIndex}
-            handleCloseTab={handleCloseTab}
-            favorites={favorites}
-            onToggleFavorite={handleToggleFavorite}
-            isMobile={isMobile}
-          />
-        </div>
-      )}
+      <div
+        className={`bg-white transition-all duration-300 ${
+          sidebarCollapsed
+            ? "w-full"
+            : isMobile
+            ? "w-full h-1/2"
+            : "w-full md:w-1/2 lg:w-2/3"
+        } ${isMobile && activeTabIndex === -1 ? "hidden" : "flex flex-col"}`}
+      >
+        <CourseTabsView
+          openTabs={openTabs}
+          activeTabIndex={activeTabIndex}
+          setActiveTabIndex={setActiveTabIndex}
+          handleCloseTab={handleCloseTab}
+          favorites={favorites}
+          onToggleFavorite={handleToggleFavorite}
+          isMobile={isMobile}
+        />
+      </div>
     </div>
   );
 };
