@@ -32,6 +32,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
           ? "w-full"
           : "w-full md:w-1/2 lg:w-2/3"
       } flex flex-col`}
+      style={isMobile ? { minHeight: "100vh" } : {}}
     >
       <CourseTabsView
         openTabs={openTabs}

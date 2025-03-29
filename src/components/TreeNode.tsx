@@ -30,6 +30,16 @@ const TreeNode: React.FC<TreeNodeProps> = ({
 }) => {
   const padding = level * 16 + 8; // 16px per level plus 8px base padding
   
+  const handleContentClick = (e: React.MouseEvent) => {
+    if (hasChildren) {
+      // For directories, toggle expansion
+      onToggle();
+    } else {
+      // For leaf nodes, perform the click action
+      onClick();
+    }
+  };
+  
   return (
     <div className="tree-node">
       <div
@@ -38,9 +48,10 @@ const TreeNode: React.FC<TreeNodeProps> = ({
           isHighlighted && "bg-accent/20"
         )}
         style={{ paddingLeft: `${padding}px` }}
+        onClick={handleContentClick}
       >
         {hasChildren ? (
-          <button
+          <div
             onClick={(e) => {
               e.stopPropagation();
               onToggle();
@@ -52,7 +63,7 @@ const TreeNode: React.FC<TreeNodeProps> = ({
             ) : (
               <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
             )}
-          </button>
+          </div>
         ) : (
           <span className="w-5" /> // Spacer for alignment
         )}
@@ -63,15 +74,6 @@ const TreeNode: React.FC<TreeNodeProps> = ({
             isActive && "font-bold",
             isHighlighted && "font-medium"
           )}
-          onClick={() => {
-            if (hasChildren) {
-              // For folders, do nothing when clicking on the text
-              // Toggling is handled by the chevron button
-            } else {
-              // For leaf nodes (courses), call onClick
-              onClick();
-            }
-          }}
         >
           {name}
         </span>

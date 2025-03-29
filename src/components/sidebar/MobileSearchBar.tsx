@@ -6,13 +6,17 @@ interface MobileSearchBarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   clearSearch: () => void;
+  showSearchBar?: boolean;
 }
 
 const MobileSearchBar: React.FC<MobileSearchBarProps> = ({
   searchQuery,
   setSearchQuery,
   clearSearch,
+  showSearchBar = true,
 }) => {
+  if (!showSearchBar) return null;
+  
   return (
     <div className="border-b border-muted">
       <CourseSearch

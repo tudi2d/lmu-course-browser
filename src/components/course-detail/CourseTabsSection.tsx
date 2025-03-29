@@ -49,22 +49,24 @@ export const CourseTabsSection: React.FC<CourseTabsSectionProps> = ({ courseData
 
   return (
     <Tabs defaultValue={defaultTab} className="mb-8">
-      <TabsList className={`${isMobile ? 'w-full overflow-x-auto flex' : ''}`}>
-        <TabsTrigger value="details">Details</TabsTrigger>
-        {hasScheduleData && <TabsTrigger value="schedule">Schedule</TabsTrigger>}
-        {hasInstructorDetails && (
-          <TabsTrigger value="instructors">Instructors</TabsTrigger>
-        )}
-        {hasInstitutionDetails && (
-          <TabsTrigger value="institutions">Institutions</TabsTrigger>
-        )}
-        {hasModuleDetails && (
-          <TabsTrigger value="modules">Modules</TabsTrigger>
-        )}
-        {hasStudyPrograms && (
-          <TabsTrigger value="programs">Programs</TabsTrigger>
-        )}
-      </TabsList>
+      <div className="overflow-x-auto">
+        <TabsList className={`${isMobile ? 'w-max min-w-full flex' : ''}`}>
+          <TabsTrigger value="details">Details</TabsTrigger>
+          {hasScheduleData && <TabsTrigger value="schedule">Schedule</TabsTrigger>}
+          {hasInstructorDetails && (
+            <TabsTrigger value="instructors">Instructors</TabsTrigger>
+          )}
+          {hasInstitutionDetails && (
+            <TabsTrigger value="institutions">Institutions</TabsTrigger>
+          )}
+          {hasModuleDetails && (
+            <TabsTrigger value="modules">Modules</TabsTrigger>
+          )}
+          {hasStudyPrograms && (
+            <TabsTrigger value="programs">Programs</TabsTrigger>
+          )}
+        </TabsList>
+      </div>
 
       {/* Details Tab */}
       <TabsContent value="details" className="pt-4">

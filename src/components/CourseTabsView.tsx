@@ -60,7 +60,7 @@ const CourseTabsView: React.FC<CourseTabsViewProps> = ({
         ))}
       </div>
 
-      <div className="flex-grow h-full overflow-auto relative">
+      <div className={`flex-grow overflow-auto relative ${isMobile ? 'min-h-[calc(100vh-120px)]' : ''}`}>
         {openTabs.map((tab, index) => (
           <div
             key={tab.course_id}

@@ -43,7 +43,7 @@ const MobileSidebar: React.FC<MobileSidebarProps> = ({
 }) => {
   return (
     <Drawer open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
-      <DrawerContent className="h-[80vh] px-0 pt-0 bg-white">
+      <DrawerContent className="h-[85vh] px-0 pt-0 bg-white">
         <div className="h-full overflow-hidden">
           <CourseSidebar
             loading={loading}

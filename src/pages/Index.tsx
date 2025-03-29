@@ -5,7 +5,7 @@ import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 
 const Index = () => {
-  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(true); // Set to true by default
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

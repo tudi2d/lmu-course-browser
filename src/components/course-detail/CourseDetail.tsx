@@ -109,7 +109,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
   const breadcrumb = path && path.length > 0 ? path.join(" / ") : "";
 
   return (
-    <div className={`animate-fade-in overflow-y-auto h-full ${isMobile ? 'p-4' : 'p-8'}`}>
+    <div className={`animate-fade-in overflow-y-auto h-full ${isMobile ? 'p-4 min-h-[calc(100vh-120px)]' : 'p-8'}`}>
       <div className={`${isMobile ? 'w-full' : 'max-w-3xl mx-auto'}`}>
         {/* Breadcrumb */}
         {breadcrumb && (

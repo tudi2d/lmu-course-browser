@@ -20,7 +20,7 @@ interface TreeBrowserProps {
 }
 
 const TreeBrowser: React.FC<TreeBrowserProps> = ({ 
-  mobileDrawerOpen = false, 
+  mobileDrawerOpen = true, // Changed default to true
   setMobileDrawerOpen = () => {}
 }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -98,14 +98,22 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({
     }
   }, [openTabs, addFavorite, removeFavorite, courseNames]);
 
+  // Open drawer by default on mobile
+  useEffect(() => {
+    if (isMobile && setMobileDrawerOpen) {
+      setMobileDrawerOpen(true);
+    }
+  }, [isMobile, setMobileDrawerOpen]);
+
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
-      {/* Mobile search bar */}
+      {/* Mobile search bar - REMOVED/HIDDEN since it's in the drawer already */}
       {isMobile && (
         <MobileSearchBar 
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
           clearSearch={clearSearch}
+          showSearchBar={false} // Hide the search bar since it's in the drawer
         />
       )}
 
