@@ -97,7 +97,7 @@ const TreeBrowser: React.FC = () => {
           sidebarCollapsed
             ? "w-0"
             : isMobile
-            ? "w-full h-[60vh]" // Fixed height for mobile
+            ? "w-full h-1/2" // 50% height for mobile
             : "w-full md:w-1/2 lg:w-1/3"
         }`}
       >
@@ -116,6 +116,7 @@ const TreeBrowser: React.FC = () => {
           handleNodeToggle={handleNodeToggle}
           handleOpenCourse={handleOpenCourse}
           user={user}
+          isMobile={isMobile}
         />
       </div>
 
@@ -135,7 +136,7 @@ const TreeBrowser: React.FC = () => {
 
       {/* Course details view for mobile */}
       {isMobile && activeTabIndex !== -1 && (
-        <div className="w-full h-[40vh] border-t border-muted">
+        <div className="w-full h-1/2 border-t border-muted">
           <CourseTabsView
             openTabs={openTabs}
             activeTabIndex={activeTabIndex}

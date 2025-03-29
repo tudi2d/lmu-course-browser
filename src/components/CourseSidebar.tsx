@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { User } from "lucide-react";
+import { ChevronDown, ChevronUp, User } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import CourseSearch from "./CourseSearch";
 import CourseTreeRenderer from "./CourseTreeRenderer";
 import FavoritesList from "./FavoritesList";
@@ -24,6 +25,7 @@ interface CourseSidebarProps {
   handleNodeToggle: (nodePath: string) => void;
   handleOpenCourse: (courseId: string, courseName: string) => void;
   user: any;
+  isMobile?: boolean;
 }
 
 const CourseSidebar: React.FC<CourseSidebarProps> = ({
@@ -41,14 +43,36 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   handleNodeToggle,
   handleOpenCourse,
   user,
+  isMobile = false,
 }) => {
+  const [searchOpen, setSearchOpen] = useState(!isMobile);
+
   return (
     <div className="flex flex-col h-full w-full">
-      <CourseSearch
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        clearSearch={clearSearch}
-      />
+      {/* Search section - collapsible on mobile */}
+      {isMobile ? (
+        <Collapsible open={searchOpen} onOpenChange={setSearchOpen}>
+          <CollapsibleTrigger asChild>
+            <div className="border-b border-muted p-3 flex justify-between items-center cursor-pointer">
+              <span className="font-medium text-sm">Search Courses</span>
+              {searchOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+            </div>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CourseSearch
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              clearSearch={clearSearch}
+            />
+          </CollapsibleContent>
+        </Collapsible>
+      ) : (
+        <CourseSearch
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          clearSearch={clearSearch}
+        />
+      )}
 
       <Tabs
         value={activeTab}
