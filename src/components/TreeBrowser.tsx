@@ -60,10 +60,7 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({
     }
   }, [treeData]);
   
-  useEffect(() => {
-    console.log("TreeBrowser - Current favorites:", favorites);
-  }, [favorites]);
-  
+  // Use custom hooks to manage different aspects of state
   const { 
     searchQuery, 
     expandedNodes, 
@@ -81,14 +78,13 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({
     handleCloseTab, 
     setActiveTabIndex 
   } = useCourseTabs();
-
-  // Close mobile drawer when a course is selected
-  useEffect(() => {
-    if (isMobile && activeTabIndex !== -1 && mobileDrawerOpen) {
-      setMobileDrawerOpen(false);
-    }
-  }, [activeTabIndex, isMobile, mobileDrawerOpen, setMobileDrawerOpen]);
   
+  // Get filtered tree data
+  const filteredTreeData = useFilteredTree(treeData, searchQuery, activeTab, favorites);
+
+  // Loading state
+  const loading = treeLoading || favoritesLoading;
+
   // Handle toggling favorite status
   const handleToggleFavorite = useCallback(async (courseId: string, isFavorited: boolean) => {
     // First find the course name from open tabs or tree data
@@ -104,12 +100,6 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({
       await addFavorite(courseId, courseName);
     }
   }, [openTabs, addFavorite, removeFavorite, courseNames]);
-  
-  // Get filtered tree data
-  const filteredTreeData = useFilteredTree(treeData, searchQuery, activeTab, favorites);
-
-  // Loading state
-  const loading = treeLoading || favoritesLoading;
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-background">
@@ -189,7 +179,7 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({
       {/* Mobile drawer sidebar */}
       {isMobile && (
         <Drawer open={mobileDrawerOpen} onOpenChange={setMobileDrawerOpen}>
-          <DrawerContent className="h-[80vh]">
+          <DrawerContent className="h-[80vh] px-0 pt-0 bg-white">
             <div className="h-full overflow-hidden">
               <CourseSidebar
                 loading={loading}

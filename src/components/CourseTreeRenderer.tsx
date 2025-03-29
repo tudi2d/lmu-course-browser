@@ -57,9 +57,8 @@ const CourseTreeRenderer: React.FC<CourseTreeRendererProps> = ({
     if (isCourse && node.value) {
       // If it's a course (leaf node), open it
       handleOpenCourse(node.value, node.name);
-    } else if (hasChildren) {
-      // If it's a folder (has children), toggle expansion
-      handleNodeToggle(nodePath);
+    } else {
+      // Don't automatically toggle folders on click - this is now handled by TreeNode
     }
   };
 

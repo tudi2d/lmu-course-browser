@@ -30,16 +30,22 @@ const TreeNode: React.FC<TreeNodeProps> = ({
 }) => {
   const padding = level * 16 + 8; // 16px per level plus 8px base padding
   
+  const handleContentClick = (e: React.MouseEvent) => {
+    // Only call onClick for leaf nodes (courses) or if clicking on the text but not the toggle button
+    if (!hasChildren) {
+      onClick();
+    }
+  };
+  
   return (
     <div className="tree-node">
       <div
         className={cn(
           "tree-node-content flex items-center py-1.5 px-2 cursor-pointer text-sm transition-colors",
-          // Removed background color change for active state
           isHighlighted && "bg-accent/20"
         )}
         style={{ paddingLeft: `${padding}px` }}
-        onClick={onClick}
+        onClick={handleContentClick}
       >
         {hasChildren ? (
           <button
@@ -59,11 +65,21 @@ const TreeNode: React.FC<TreeNodeProps> = ({
           <span className="w-5" /> // Spacer for alignment
         )}
         
-        <span className={cn(
-          "flex-1 truncate",
-          isActive && "font-bold", // Only keep the bold text for active state
-          isHighlighted && "font-medium"
-        )}>
+        <span 
+          className={cn(
+            "flex-1 truncate",
+            isActive && "font-bold", // Only keep the bold text for active state
+            isHighlighted && "font-medium"
+          )}
+          onClick={() => {
+            // For non-leaf nodes, we toggle. For leaf nodes, we call onClick
+            if (hasChildren) {
+              onToggle();
+            } else {
+              onClick();
+            }
+          }}
+        >
           {name}
         </span>
         

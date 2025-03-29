@@ -60,13 +60,13 @@ const CourseTabsView: React.FC<CourseTabsViewProps> = ({
         ))}
       </div>
 
-      <div className="flex-grow h-full overflow-hidden relative">
+      <div className="flex-grow h-full overflow-auto relative">
         {openTabs.map((tab, index) => (
           <div
             key={tab.course_id}
             className={`absolute inset-0 ${
               activeTabIndex === index ? "block" : "hidden"
-            }`}
+            } overflow-auto`}
           >
             <CourseDetail 
               course={tab.details} 

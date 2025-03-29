@@ -6,6 +6,21 @@ export function useCourseSearch(treeData: CourseNode | null) {
   const [searchQuery, setSearchQuery] = useState("");
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
+  // Initialize expanded nodes with top-level nodes when tree data loads
+  useEffect(() => {
+    if (!treeData || !treeData.children) return;
+    
+    const initialExpanded = new Set<string>();
+    
+    // Auto-expand top-level nodes
+    treeData.children.forEach((node) => {
+      const nodePath = node.name;
+      initialExpanded.add(nodePath);
+    });
+    
+    setExpandedNodes(initialExpanded);
+  }, [treeData]);
+
   // Update expanded nodes based on search query - more targeted expansion
   useEffect(() => {
     if (!searchQuery || !treeData) return;
