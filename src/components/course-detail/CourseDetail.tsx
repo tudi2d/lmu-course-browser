@@ -11,6 +11,7 @@ import { CourseTabsSection } from "./CourseTabsSection";
 import { CourseAdditionalInfo } from "./CourseAdditionalInfo";
 import { CourseLocationInfo } from "./CourseLocationInfo";
 import { CourseExternalLinks } from "./CourseExternalLinks";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CourseDetailProps {
   course: Course | null;
@@ -28,6 +29,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
   const [courseData, setCourseData] = useState<Course | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
   const [loading, setLoading] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     // Reset course data when course changes
@@ -107,8 +109,8 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
   const breadcrumb = path && path.length > 0 ? path.join(" / ") : "";
 
   return (
-    <div className="p-8 animate-fade-in overflow-y-auto h-full">
-      <div className="max-w-3xl mx-auto">
+    <div className={`animate-fade-in overflow-y-auto h-full ${isMobile ? 'p-4' : 'p-8'}`}>
+      <div className={`${isMobile ? 'w-full' : 'max-w-3xl mx-auto'}`}>
         {/* Breadcrumb */}
         {breadcrumb && (
           <div className="text-xs tracking-wide text-muted-foreground mb-6">
@@ -127,7 +129,7 @@ const CourseDetail: React.FC<CourseDetailProps> = ({
             )}
 
             {/* Course name */}
-            <h1 className="text-2xl font-medium text-tree-gray mb-2">
+            <h1 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-medium text-tree-gray mb-2`}>
               {courseData.name}
             </h1>
 

@@ -20,12 +20,12 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
   return (
     <nav className="border-b border-slate-200 py-3 px-4 bg-white">
       <div className="container mx-auto flex justify-between items-center">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           {isMobile && onMenuClick && (
             <Button 
               variant="ghost" 
               size="icon" 
-              className="h-8 w-8"
+              className="h-8 w-8 mr-2 p-0"
               onClick={onMenuClick}
             >
               <Menu size={20} />

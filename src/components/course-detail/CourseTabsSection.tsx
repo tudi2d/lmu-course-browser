@@ -8,12 +8,15 @@ import { CourseInstructorsTab } from "./CourseInstructorsTab";
 import { CourseInstitutionsTab } from "./CourseInstitutionsTab";
 import { CourseModulesTab } from "./CourseModulesTab";
 import { CourseStudyProgramsTab } from "./CourseStudyProgramsTab";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface CourseTabsSectionProps {
   courseData: Course;
 }
 
 export const CourseTabsSection: React.FC<CourseTabsSectionProps> = ({ courseData }) => {
+  const isMobile = useIsMobile();
+
   // We need at least one section with data to show the tabs
   const hasScheduleData = courseData.schedule && Array.isArray(courseData.schedule) && courseData.schedule.length > 0;
   const hasInstructorDetails = courseData.instructor_details && (
@@ -46,7 +49,7 @@ export const CourseTabsSection: React.FC<CourseTabsSectionProps> = ({ courseData
 
   return (
     <Tabs defaultValue={defaultTab} className="mb-8">
-      <TabsList>
+      <TabsList className={`${isMobile ? 'w-full overflow-x-auto flex' : ''}`}>
         <TabsTrigger value="details">Details</TabsTrigger>
         {hasScheduleData && <TabsTrigger value="schedule">Schedule</TabsTrigger>}
         {hasInstructorDetails && (
@@ -59,7 +62,7 @@ export const CourseTabsSection: React.FC<CourseTabsSectionProps> = ({ courseData
           <TabsTrigger value="modules">Modules</TabsTrigger>
         )}
         {hasStudyPrograms && (
-          <TabsTrigger value="programs">Study Programs</TabsTrigger>
+          <TabsTrigger value="programs">Programs</TabsTrigger>
         )}
       </TabsList>
 

@@ -35,7 +35,7 @@ const CourseTabsView: React.FC<CourseTabsViewProps> = ({
 
   return (
     <div className="flex flex-col h-full w-full">
-      <div className="border-b flex overflow-x-auto">
+      <div className={`border-b flex overflow-x-auto ${isMobile ? 'pb-1' : ''}`}>
         {openTabs.map((tab, index) => (
           <div
             key={tab.course_id}
