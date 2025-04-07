@@ -20,7 +20,7 @@ interface TreeBrowserProps {
 }
 
 const TreeBrowser: React.FC<TreeBrowserProps> = ({ 
-  mobileDrawerOpen = true, // Changed default to true
+  mobileDrawerOpen = true,
   setMobileDrawerOpen = () => {}
 }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -54,6 +54,7 @@ const TreeBrowser: React.FC<TreeBrowserProps> = ({
       
       const names = extractCourseNames(treeData, {});
       setCourseNames(names);
+      console.log("Extracted course names:", names);
     }
   }, [treeData]);
   

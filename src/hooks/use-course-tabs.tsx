@@ -49,9 +49,12 @@ export function useCourseTabs() {
         return;
       }
       
+      // Use the name from details if available and the provided name is empty
+      const finalName = (!courseName && details.name) ? details.name : courseName;
+      
       setOpenTabs((prev) => [
         ...prev,
-        { course_id: courseId, name: courseName, details },
+        { course_id: courseId, name: finalName, details },
       ]);
       setActiveTabIndex((prev) => prev + 1);
     }
@@ -82,7 +85,7 @@ export function useCourseTabs() {
   return {
     openTabs,
     activeTabIndex,
-    setActiveTabIndex, // Added the missing setActiveTabIndex function here
+    setActiveTabIndex,
     activeTab,
     setActiveTab,
     handleOpenCourse,

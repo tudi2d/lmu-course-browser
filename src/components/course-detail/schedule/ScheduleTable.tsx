@@ -26,13 +26,12 @@ const renderNewScheduleFormat = (scheduleItems: ScheduleItem[], calendarLinks?: 
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead className="w-10"></TableHead>
           <TableHead>Day</TableHead>
           <TableHead>Time</TableHead>
           <TableHead>Rhythm</TableHead>
-          <TableHead>Duration</TableHead>
           <TableHead>Room</TableHead>
           <TableHead>Notes</TableHead>
-          <TableHead className="w-10"></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -44,18 +43,24 @@ const renderNewScheduleFormat = (scheduleItems: ScheduleItem[], calendarLinks?: 
           
           return (
             <TableRow key={index}>
+              <TableCell>
+                {calendarLink && calendarLink.url && (
+                  <a
+                    href={calendarLink.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Download iCal"
+                  >
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Calendar className="h-4 w-4" />
+                    </Button>
+                  </a>
+                )}
+              </TableCell>
               <TableCell>{item.day}</TableCell>
               <TableCell>{item.time}</TableCell>
               <TableCell>
                 {item.rhythm === "woch" ? "Weekly" : item.rhythm || "N/A"}
-              </TableCell>
-              <TableCell>
-                {item.duration?.start ? (
-                  <>
-                    {item.duration.start}
-                    {item.duration.end && <> to {item.duration.end}</>}
-                  </>
-                ) : "N/A"}
               </TableCell>
               <TableCell>
                 {item.rooms && item.rooms.length > 0 ? (
@@ -82,20 +87,6 @@ const renderNewScheduleFormat = (scheduleItems: ScheduleItem[], calendarLinks?: 
               <TableCell>
                 {item.notes || "N/A"}
               </TableCell>
-              <TableCell>
-                {calendarLink && calendarLink.url && (
-                  <a
-                    href={calendarLink.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Download iCal"
-                  >
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <Calendar className="h-4 w-4" />
-                    </Button>
-                  </a>
-                )}
-              </TableCell>
             </TableRow>
           );
         })}
@@ -109,20 +100,15 @@ const renderOldScheduleFormat = (scheduleItems: Schedule[], calendarLinks?: Cale
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead className="w-10"></TableHead>
           <TableHead>Day</TableHead>
           <TableHead>Time</TableHead>
           <TableHead>Rhythm</TableHead>
-          <TableHead>Duration</TableHead>
           <TableHead>Room</TableHead>
-          <TableHead className="w-10"></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {scheduleItems.map((item, index) => {
-          // Format dates for readability
-          const formattedFirstDate = item.first_date ? new Date(item.first_date).toLocaleDateString() : item.first_date;
-          const formattedLastDate = item.last_date ? new Date(item.last_date).toLocaleDateString() : item.last_date;
-          
           // Find corresponding calendar link if available
           const calendarLink = calendarLinks && 
                             calendarLinks.length > index ? 
@@ -130,16 +116,26 @@ const renderOldScheduleFormat = (scheduleItems: Schedule[], calendarLinks?: Cale
           
           return (
             <TableRow key={index}>
+              <TableCell>
+                {(calendarLink && calendarLink.url) || item.calendar_link ? (
+                  <a
+                    href={(calendarLink && calendarLink.url) || item.calendar_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label="Download iCal"
+                    title="Download iCal"
+                  >
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <Calendar className="h-4 w-4" />
+                    </Button>
+                  </a>
+                ) : null}
+              </TableCell>
               <TableCell>{item.day}</TableCell>
               <TableCell>
                 {item.time_start} - {item.time_end}
               </TableCell>
               <TableCell>{item.rhythm || "N/A"}</TableCell>
-              <TableCell>
-                {formattedFirstDate && formattedLastDate
-                  ? `${formattedFirstDate} to ${formattedLastDate}`
-                  : formattedFirstDate || formattedLastDate || "N/A"}
-              </TableCell>
               <TableCell>
                 {item.room}
                 {item.room_link && (
@@ -152,22 +148,6 @@ const renderOldScheduleFormat = (scheduleItems: Schedule[], calendarLinks?: Cale
                     <ExternalLink className="h-3 w-3" />
                   </a>
                 )}
-              </TableCell>
-              <TableCell>
-                {(calendarLink && calendarLink.url) || item.calendar_link ? (
-                  <a
-                    href={(calendarLink && calendarLink.url) || item.calendar_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Download iCal"
-                    title="Download iCal"
-                  >
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1 p-1">
-                      <Calendar className="h-4 w-4" />
-                      <span>iCal</span>
-                    </Button>
-                  </a>
-                ) : null}
               </TableCell>
             </TableRow>
           );
