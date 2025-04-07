@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { fetchCourseDetails, Course } from "@/services/courseService";
+import { fetchCourseDetails, fetchCourseTree, Course, CourseNode } from "@/services/courseService";
 import { toast } from "@/components/ui/use-toast";
 
 interface CourseTab {
@@ -13,6 +13,33 @@ export function useCourseTabs() {
   const [openTabs, setOpenTabs] = useState<CourseTab[]>([]);
   const [activeTabIndex, setActiveTabIndex] = useState<number>(-1);
   const [activeTab, setActiveTab] = useState("all-courses");
+
+  // Function to find a course name in the tree by ID
+  const findCourseNameInTree = async (courseId: string): Promise<string | null> => {
+    try {
+      const treeData = await fetchCourseTree();
+      
+      const findName = (node: CourseNode, id: string): string | null => {
+        if (node.value === id) {
+          return node.name;
+        }
+        
+        if (node.children) {
+          for (const child of node.children) {
+            const found = findName(child, id);
+            if (found) return found;
+          }
+        }
+        
+        return null;
+      };
+      
+      return findName(treeData, courseId);
+    } catch (error) {
+      console.error("Error finding course name in tree:", error);
+      return null;
+    }
+  };
 
   const loadCourseDetails = async (courseId: string): Promise<Course | null> => {
     if (courseId) {
@@ -49,8 +76,16 @@ export function useCourseTabs() {
         return;
       }
       
-      // Use the name from details if available and the provided name is empty
-      const finalName = (!courseName && details.name) ? details.name : courseName;
+      // Use the name from details if available
+      let finalName = details.name || courseName;
+      
+      // If we still don't have a name, try to find it in the course tree
+      if (!finalName || finalName === courseId) {
+        const treeName = await findCourseNameInTree(courseId);
+        if (treeName) {
+          finalName = treeName;
+        }
+      }
       
       setOpenTabs((prev) => [
         ...prev,

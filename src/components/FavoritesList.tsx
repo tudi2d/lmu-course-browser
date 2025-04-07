@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchCourseTree, CourseNode } from "@/services/courseService";
 
 interface FavoritesListProps {
   favorites: string[];
@@ -23,6 +24,46 @@ const FavoritesList: React.FC<FavoritesListProps> = ({
 }) => {
   const [favoriteItems, setFavoriteItems] = useState<FavoriteItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [treeNames, setTreeNames] = useState<Record<string, string>>({});
+
+  // Function to find a course name in the tree by ID
+  const findCourseNameInTree = (node: CourseNode, id: string, namesMap: Record<string, string>): void => {
+    if (node.value === id) {
+      namesMap[id] = node.name;
+    }
+    
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        findCourseNameInTree(child, id, namesMap);
+      }
+    }
+  };
+
+  // Fetch course names from tree for any missing names
+  useEffect(() => {
+    const fetchTreeNames = async () => {
+      try {
+        // Only fetch tree data if we have favorites without names
+        const missingNames = favorites.filter(id => !courseNames[id]);
+        if (missingNames.length === 0) return;
+        
+        console.log("Fetching tree data for missing course names:", missingNames);
+        const treeData = await fetchCourseTree();
+        
+        const namesMap: Record<string, string> = {};
+        for (const id of missingNames) {
+          findCourseNameInTree(treeData, id, namesMap);
+        }
+        
+        console.log("Found names in tree:", namesMap);
+        setTreeNames(namesMap);
+      } catch (error) {
+        console.error("Error fetching course names from tree:", error);
+      }
+    };
+
+    fetchTreeNames();
+  }, [favorites, courseNames]);
 
   useEffect(() => {
     const fetchFavoriteDetails = async () => {
@@ -51,7 +92,7 @@ const FavoritesList: React.FC<FavoritesListProps> = ({
         // Fallback to using local favorites and course names from props
         const items = favorites.map(courseId => ({
           course_id: courseId,
-          name: courseNames[courseId] || null
+          name: courseNames[courseId] || treeNames[courseId] || null
         }));
         
         setFavoriteItems(items);
@@ -63,7 +104,7 @@ const FavoritesList: React.FC<FavoritesListProps> = ({
     };
 
     fetchFavoriteDetails();
-  }, [favorites, courseNames]);
+  }, [favorites, courseNames, treeNames]);
 
   if (loading) {
     return (
@@ -87,7 +128,7 @@ const FavoritesList: React.FC<FavoritesListProps> = ({
       <ul className="space-y-1">
         {favoriteItems.map((item) => {
           const courseId = item.course_id;
-          const displayName = item.name || courseNames[courseId] || courseId;
+          const displayName = item.name || courseNames[courseId] || treeNames[courseId] || courseId;
           const isActive = openTabs.some((tab) => tab.course_id === courseId);
           
           return (
