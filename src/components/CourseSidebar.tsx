@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -60,17 +59,13 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
         isMobile={isMobile}
       />
 
-      <Tabs
-        value={activeTab}
-        onValueChange={setActiveTab}
-        className="w-full"
-      >
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="w-full">
           <TabsTrigger className="flex-1" value="all-courses">
-            All Courses
+            Alle Kurse
           </TabsTrigger>
           <TabsTrigger className="flex-1" value="favorites">
-            Favorites {favorites.length > 0 && `(${favorites.length})`}
+            Favoriten {favorites.length > 0 && `(${favorites.length})`}
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -78,19 +73,22 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
       <div className="overflow-y-auto h-full relative">
         {loading ? (
           <div className="p-4 text-sm text-muted-foreground">
-            Loading courses...
+            Kurse werden geladen...
           </div>
         ) : (
           <>
             {activeTab === "favorites" && !user && (
               <div className="p-4 text-sm bg-muted/30 border-b">
                 <p className="text-muted-foreground mb-2">
-                  <strong>Note:</strong> Sign in to save your favorites permanently.
+                  <strong>Hinweis:</strong> Melde dich an, um deine Favoriten
+                  dauerhaft zu speichern.
                 </p>
-                <Button 
+                <Button
                   onClick={() => {
-                    const signInButton = document.querySelector('[aria-label="Sign In"]');
-                    if (signInButton && 'click' in signInButton) {
+                    const signInButton = document.querySelector(
+                      '[aria-label="Anmelden"]'
+                    );
+                    if (signInButton && "click" in signInButton) {
                       (signInButton as HTMLElement).click();
                     }
                   }}
@@ -99,11 +97,11 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                   variant="outline"
                 >
                   <User size={14} />
-                  Sign In
+                  Anmelden
                 </Button>
               </div>
             )}
-            
+
             {activeTab === "favorites" ? (
               <FavoritesList
                 favorites={favorites}
@@ -111,7 +109,9 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                 openTabs={openTabs}
                 handleOpenCourse={handleOpenCourse}
               />
-            ) : filteredTreeData && filteredTreeData.children && filteredTreeData.children.length > 0 ? (
+            ) : filteredTreeData &&
+              filteredTreeData.children &&
+              filteredTreeData.children.length > 0 ? (
               filteredTreeData.children.map((childNode) => (
                 <CourseTreeRenderer
                   key={childNode.name}
@@ -126,7 +126,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
               ))
             ) : (
               <div className="p-4 text-sm text-muted-foreground">
-                No courses found
+                Keine Kurse gefunden
               </div>
             )}
           </>

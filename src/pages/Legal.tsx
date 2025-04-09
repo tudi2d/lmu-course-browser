@@ -1,9 +1,8 @@
-
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
-import Footer from '../components/Footer';
+import React from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+import Footer from "../components/Footer";
 
 const Legal = () => {
   return (
@@ -14,13 +13,15 @@ const Legal = () => {
             <Button variant="ghost" size="sm" asChild className="mb-4">
               <Link to="/" className="flex items-center">
                 <ChevronLeft size={16} className="mr-1" />
-                Back to courses
+                Zurück zu den Kursen
               </Link>
             </Button>
-            
-            <h1 className="text-3xl font-bold mb-6 font-serif text-primary">Legal Information</h1>
+
+            <h1 className="text-3xl font-bold mb-6 font-serif text-primary">
+              Rechtliche Informationen
+            </h1>
           </div>
-          
+
           <div className="space-y-8">
             <section>
               <h2 className="text-xl font-bold mb-3">Impressum</h2>
@@ -28,35 +29,41 @@ const Legal = () => {
                 <p>Ludwig-Maximilians-Universität München</p>
                 <p>Geschwister-Scholl-Platz 1</p>
                 <p>80539 München</p>
-                <p>Germany</p>
-                <p className="pt-2">Phone: +49 (0) 89 / 2180 - 0</p>
-                <p>Email: info@lmu.de</p>
+                <p>Deutschland</p>
+                <p className="pt-2">Telefon: +49 (0) 89 / 2180 - 0</p>
+                <p>E-Mail: info@lmu.de</p>
               </div>
             </section>
-            
+
             <section>
-              <h2 className="text-xl font-bold mb-3">Legal Responsibility</h2>
+              <h2 className="text-xl font-bold mb-3">
+                Rechtliche Verantwortung
+              </h2>
               <p className="text-muted-foreground">
-                This website is operated by Ludwig-Maximilians-Universität München, 
-                a corporation under public law represented by the President.
+                Diese Website wird betrieben von der
+                Ludwig-Maximilians-Universität München, einer Körperschaft des
+                öffentlichen Rechts, vertreten durch den Präsidenten.
               </p>
             </section>
-            
+
             <section>
-              <h2 className="text-xl font-bold mb-3">Privacy Policy</h2>
+              <h2 className="text-xl font-bold mb-3">Datenschutz</h2>
               <p className="text-muted-foreground">
-                We take the protection of your personal data very seriously. We treat your personal 
-                data confidentially and in accordance with the statutory data protection regulations 
-                and this privacy policy.
+                Wir nehmen den Schutz Ihrer persönlichen Daten sehr ernst. Wir
+                behandeln Ihre persönlichen Daten vertraulich und in
+                Übereinstimmung mit den gesetzlichen Datenschutzbestimmungen und
+                dieser Datenschutzerklärung.
               </p>
             </section>
-            
+
             <section>
-              <h2 className="text-xl font-bold mb-3">Disclaimer</h2>
+              <h2 className="text-xl font-bold mb-3">Haftungsausschluss</h2>
               <p className="text-muted-foreground">
-                The information provided on this website has been compiled with care. 
-                However, errors in content cannot be ruled out. In particular, no guarantee 
-                is given for the completeness, correctness and up-to-dateness of the information.
+                Die auf dieser Website bereitgestellten Informationen wurden
+                sorgfältig zusammengestellt. Dennoch können Fehler im Inhalt
+                nicht ausgeschlossen werden. Insbesondere wird keine Garantie
+                für die Vollständigkeit, Richtigkeit und Aktualität der
+                Informationen übernommen.
               </p>
             </section>
           </div>

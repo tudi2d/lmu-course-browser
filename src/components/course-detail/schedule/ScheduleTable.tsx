@@ -1,6 +1,12 @@
-
 import React from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ExternalLink, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScheduleItem, Schedule, CalendarLink } from "@/services/types";
@@ -11,22 +17,25 @@ interface ScheduleTableProps {
   isOldFormat: boolean;
 }
 
-export const ScheduleTable: React.FC<ScheduleTableProps> = ({ 
-  scheduleItems, 
-  calendarLinks, 
-  isOldFormat 
+export const ScheduleTable: React.FC<ScheduleTableProps> = ({
+  scheduleItems,
+  calendarLinks,
+  isOldFormat,
 }) => {
-  return isOldFormat 
-    ? renderOldScheduleFormat(scheduleItems as Schedule[], calendarLinks) 
+  return isOldFormat
+    ? renderOldScheduleFormat(scheduleItems as Schedule[], calendarLinks)
     : renderNewScheduleFormat(scheduleItems as ScheduleItem[], calendarLinks);
 };
 
-const renderNewScheduleFormat = (scheduleItems: ScheduleItem[], calendarLinks?: CalendarLink[]) => {
+const renderNewScheduleFormat = (
+  scheduleItems: ScheduleItem[],
+  calendarLinks?: CalendarLink[]
+) => {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-10"></TableHead>
+          <TableHead className="w-10">iCal</TableHead>
           <TableHead>Day</TableHead>
           <TableHead>Time</TableHead>
           <TableHead>Rhythm</TableHead>
@@ -37,10 +46,11 @@ const renderNewScheduleFormat = (scheduleItems: ScheduleItem[], calendarLinks?: 
       <TableBody>
         {scheduleItems.map((item, index) => {
           // Find corresponding calendar link if available
-          const calendarLink = calendarLinks && 
-                            calendarLinks.length > index ? 
-                            calendarLinks[index] : null;
-          
+          const calendarLink =
+            calendarLinks && calendarLinks.length > index
+              ? calendarLinks[index]
+              : null;
+
           return (
             <TableRow key={index}>
               <TableCell>
@@ -82,11 +92,11 @@ const renderNewScheduleFormat = (scheduleItems: ScheduleItem[], calendarLinks?: 
                       </div>
                     ))}
                   </div>
-                ) : "N/A"}
+                ) : (
+                  "N/A"
+                )}
               </TableCell>
-              <TableCell>
-                {item.notes || "N/A"}
-              </TableCell>
+              <TableCell>{item.notes || "N/A"}</TableCell>
             </TableRow>
           );
         })}
@@ -95,12 +105,15 @@ const renderNewScheduleFormat = (scheduleItems: ScheduleItem[], calendarLinks?: 
   );
 };
 
-const renderOldScheduleFormat = (scheduleItems: Schedule[], calendarLinks?: CalendarLink[]) => {
+const renderOldScheduleFormat = (
+  scheduleItems: Schedule[],
+  calendarLinks?: CalendarLink[]
+) => {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-10"></TableHead>
+          <TableHead className="w-10">iCal</TableHead>
           <TableHead>Day</TableHead>
           <TableHead>Time</TableHead>
           <TableHead>Rhythm</TableHead>
@@ -110,16 +123,19 @@ const renderOldScheduleFormat = (scheduleItems: Schedule[], calendarLinks?: Cale
       <TableBody>
         {scheduleItems.map((item, index) => {
           // Find corresponding calendar link if available
-          const calendarLink = calendarLinks && 
-                            calendarLinks.length > index ? 
-                            calendarLinks[index] : null;
-          
+          const calendarLink =
+            calendarLinks && calendarLinks.length > index
+              ? calendarLinks[index]
+              : null;
+
           return (
             <TableRow key={index}>
               <TableCell>
                 {(calendarLink && calendarLink.url) || item.calendar_link ? (
                   <a
-                    href={(calendarLink && calendarLink.url) || item.calendar_link}
+                    href={
+                      (calendarLink && calendarLink.url) || item.calendar_link
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label="Download iCal"

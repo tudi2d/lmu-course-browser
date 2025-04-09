@@ -1,7 +1,6 @@
-
-import React, { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/use-toast';
+import React, { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/components/ui/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -9,10 +8,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 
 interface AuthDialogProps {
   open: boolean;
@@ -30,16 +29,16 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     e.preventDefault();
     setAuthLoading(true);
     setAuthError("");
-    
+
     try {
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({
           email,
           password,
         });
-        
+
         if (error) throw error;
-        
+
         toast({
           title: "Account created",
           description: "Please check your email to verify your account.",
@@ -49,10 +48,10 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
           email,
           password,
         });
-        
+
         if (error) throw error;
       }
-      
+
       onOpenChange(false);
     } catch (error: any) {
       console.error("Authentication error:", error);
@@ -66,14 +65,14 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isSignUp ? "Create Account" : "Sign In"}</DialogTitle>
+          <DialogTitle>{isSignUp ? "Konto erstellen" : "Anmelden"}</DialogTitle>
           <DialogDescription>
-            {isSignUp 
-              ? "Create a new account to save your favorite courses" 
-              : "Sign in to your account to access your favorites"}
+            {isSignUp
+              ? "Erstelle ein neues Konto, um deine Favoriten zu speichern"
+              : "Melde dich mit deinem Konto an, um deine Favoriten zu sehen"}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSignIn} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -82,13 +81,13 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="your.email@example.com"
+              placeholder="deine.email@example.com"
               required
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Passwort</Label>
             <Input
               id="password"
               type="password"
@@ -98,23 +97,29 @@ const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
               required
             />
           </div>
-          
+
           {authError && (
             <div className="text-destructive text-sm">{authError}</div>
           )}
-          
+
           <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:space-x-0">
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => setIsSignUp(!isSignUp)}
               disabled={authLoading}
             >
-              {isSignUp ? "Already have an account?" : "Need an account?"}
+              {isSignUp
+                ? "Hast du bereits ein Konto?"
+                : "Benötigst du ein Konto?"}
             </Button>
-            
+
             <Button type="submit" disabled={authLoading}>
-              {authLoading ? "Processing..." : isSignUp ? "Sign Up" : "Sign In"}
+              {authLoading
+                ? "Wird verarbeitet..."
+                : isSignUp
+                ? "Konto erstellen"
+                : "Anmelden"}
             </Button>
           </DialogFooter>
         </form>

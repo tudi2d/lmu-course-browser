@@ -1,8 +1,6 @@
-
-import React from 'react';
-import { User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { User } from "lucide-react";
 
 interface SignInButtonProps {
   onClick: () => void;
@@ -12,15 +10,15 @@ const SignInButton = ({ onClick }: SignInButtonProps) => {
   const isMobile = useIsMobile();
 
   return (
-    <Button 
-      variant="outline" 
-      size={isMobile ? "icon" : "sm"} 
+    <Button
+      variant="outline"
+      size={isMobile ? "icon" : "sm"}
       onClick={onClick}
       className="whitespace-nowrap"
-      aria-label="Sign In"
+      aria-label="Anmelden"
     >
       <User className={isMobile ? "h-4 w-4" : "mr-2 h-4 w-4"} />
-      {!isMobile && "Sign In"}
+      {!isMobile && "Anmelden"}
     </Button>
   );
 };

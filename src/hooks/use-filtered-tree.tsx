@@ -1,4 +1,3 @@
-
 import { useMemo } from "react";
 import { CourseNode } from "@/services/courseService";
 import { cloneTree } from "@/utils/tree-utils";
@@ -13,15 +12,15 @@ export function useFilteredTree(
 ) {
   const { filterForSearch } = useSearchFilter();
   const { filterForFavorites } = useFavoritesFilter();
-  
+
   const filteredTreeData = useMemo(() => {
     if (!treeData) return null;
-    
+
     console.log("Filtering tree with:", {
       searchQuery,
       activeTab,
       favoritesCount: favorites.length,
-      favorites: favorites
+      favorites: favorites,
     });
 
     // Start with a clone of the original tree
@@ -39,11 +38,11 @@ export function useFilteredTree(
     console.log("Filtering result:", {
       hasChildren: result?.children?.length > 0,
       childrenCount: result?.children?.length || 0,
-      result: result
+      result: result,
     });
-    
+
     return result;
-  }, [treeData, searchQuery, activeTab, favorites, filterForSearch, filterForFavorites]);
+  }, [treeData, searchQuery, filterForSearch]);
 
   return filteredTreeData;
 }
