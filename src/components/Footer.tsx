@@ -1,6 +1,5 @@
 
 import { Link } from "react-router-dom";
-import { Github } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -17,9 +16,8 @@ const Footer = () => {
             href="https://github.com/tudi2d/lmu-course-browser" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="hover:text-primary transition-colors flex items-center"
+            className="hover:text-primary transition-colors"
           >
-            <Github size={14} className="mr-1" />
             GitHub
           </a>
         </div>
