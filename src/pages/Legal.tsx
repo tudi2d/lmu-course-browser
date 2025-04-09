@@ -26,12 +26,13 @@ const Legal = () => {
             <section>
               <h2 className="text-xl font-bold mb-3">Impressum</h2>
               <div className="space-y-2 text-muted-foreground">
-                <p>Ludwig-Maximilians-Universität München</p>
-                <p>Geschwister-Scholl-Platz 1</p>
-                <p>80539 München</p>
-                <p>Deutschland</p>
-                <p className="pt-2">Telefon: +49 (0) 89 / 2180 - 0</p>
-                <p>E-Mail: info@lmu.de</p>
+                <p>Information according to § 5 TMG</p>
+                <p>Philipp Hugenroth</p>
+                <p>Viktor-Scheffel-Str. 16</p>
+                <p>80803 Munich, Germany</p>
+                <p className="pt-2">Contact</p>
+                <p>Phone: +49 151 254 04273</p>
+                <p>E-Mail: philipp.hugenroth@campus.lmu.de</p>
               </div>
             </section>
 
@@ -57,13 +58,24 @@ const Legal = () => {
             </section>
 
             <section>
-              <h2 className="text-xl font-bold mb-3">Haftungsausschluss</h2>
+              <h2 className="text-xl font-bold mb-3">
+                Disclaimer: Liability for contents
+              </h2>
               <p className="text-muted-foreground">
-                Die auf dieser Website bereitgestellten Informationen wurden
-                sorgfältig zusammengestellt. Dennoch können Fehler im Inhalt
-                nicht ausgeschlossen werden. Insbesondere wird keine Garantie
-                für die Vollständigkeit, Richtigkeit und Aktualität der
-                Informationen übernommen.
+                The contents of our pages were created with care. However, we
+                cannot guarantee the correctness, completeness and
+                up-to-dateness of the contents. As a service provider, we are
+                responsible for our own content on these pages in accordance
+                with general legislation pursuant to § 7 Para.1 TMG. However,
+                according to §§ 8 to 10 TMG, we are not obliged as a service
+                provider to monitor transmitted or stored third-party
+                information or to investigate circumstances that indicate
+                illegal activity. Obligations to remove or block the use of
+                information in accordance with general laws remain unaffected by
+                this. However, liability in this respect is only possible from
+                the point in time at which a concrete infringement of the law
+                becomes known. If we become aware of any such infringements, we
+                will remove this content immediately.
               </p>
             </section>
           </div>
