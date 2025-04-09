@@ -1,4 +1,6 @@
+
 import { Link } from "react-router-dom";
+import { Github } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -10,6 +12,16 @@ const Footer = () => {
           <Link to="/legal" className="hover:text-primary transition-colors">
             Impressum & Legal
           </Link>
+          <span className="mx-2">•</span>
+          <a 
+            href="https://github.com/tudi2d/lmu-course-browser" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="hover:text-primary transition-colors flex items-center"
+          >
+            <Github size={14} className="mr-1" />
+            GitHub
+          </a>
         </div>
       </div>
     </footer>
