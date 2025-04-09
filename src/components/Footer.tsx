@@ -13,7 +13,7 @@ const Footer = () => {
             GitHub
           </a>
           <span className="mx-2">•</span>
-          <a href="https://lovable.dev/projects/0d01a7f3-8cc0-4d63-99d9-ea4e7a2ba448" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Lovable</a>
+          <a href="https://lovable.dev/projects/0d01a7f3-8cc0-4d63-99d9-ea4e7a2ba448" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Remix on Lovable</a>
         </div>
       </div>
     </footer>;
